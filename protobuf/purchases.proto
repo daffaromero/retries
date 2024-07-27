@@ -4,6 +4,7 @@ option go_package = "github.com/daffaromero/common/purchases";
 
 service PurchaseService {
   rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse) {}
+  rpc GetOrders(GetOrdersRequest) returns (GetOrderResponse) {}
 }
 
 message Order {
