@@ -10,6 +10,7 @@ import (
 func JetStreamInit() (nats.JetStreamContext, error) {
 	nc, err := nats.Connect(nats.DefaultURL)
 	if err != nil {
+		log.Print(err)
 		return nil, err
 	}
 
