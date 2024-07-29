@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	handlers "github.com/daffaromero/retries/services/purchases/handlers/purchases"
-	"github.com/daffaromero/retries/services/purchases/service"
+	handlers "github.com/daffaromero/retries/services/order-service/handlers/purchases"
+	"github.com/daffaromero/retries/services/order-service/service"
 )
 
 type httpServer struct {

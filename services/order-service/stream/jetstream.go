@@ -3,7 +3,7 @@ package stream
 import (
 	"log"
 
-	config "github.com/daffaromero/retries/services/purchases/config"
+	config "github.com/daffaromero/retries/services/order-service/config"
 	"github.com/nats-io/nats.go"
 )
 

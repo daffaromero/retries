@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/daffaromero/retries/services/common/utils"
-	"github.com/daffaromero/retries/services/purchases/config"
+	"github.com/daffaromero/retries/services/order-service/config"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )

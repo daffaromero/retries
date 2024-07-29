@@ -1,5 +1,5 @@
 run-purchases:
-	@cd services/purchases && go run .
+	@cd services/order-service && go run .
 
 run-products:
 	@cd services/products && go run .

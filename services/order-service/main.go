@@ -4,9 +4,9 @@ import (
 	"log"
 	"sync"
 
-	"github.com/daffaromero/retries/services/purchases/service/publishers"
-	"github.com/daffaromero/retries/services/purchases/service/subscribers"
-	"github.com/daffaromero/retries/services/purchases/stream"
+	"github.com/daffaromero/retries/services/order-service/service/publishers"
+	"github.com/daffaromero/retries/services/order-service/service/subscribers"
+	"github.com/daffaromero/retries/services/order-service/stream"
 )
 
 func main() {

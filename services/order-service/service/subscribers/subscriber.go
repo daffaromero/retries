@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/daffaromero/retries/services/common/genproto/purchases"
-	"github.com/daffaromero/retries/services/purchases/config"
+	"github.com/daffaromero/retries/services/order-service/config"
 	"github.com/nats-io/nats.go"
 )
 

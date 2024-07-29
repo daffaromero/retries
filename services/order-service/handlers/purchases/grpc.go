@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/daffaromero/retries/services/common/genproto/purchases"
-	"github.com/daffaromero/retries/services/purchases/types"
+	"github.com/daffaromero/retries/services/order-service/types"
 	"google.golang.org/grpc"
 )
 
