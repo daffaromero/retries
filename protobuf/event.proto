@@ -1,0 +1,27 @@
+syntax = "proto3";
+option go_package = "github.com/daffaromero/retries/services/common/event";
+
+service Event {
+  rpc GetEvent(GetEventFilter) returns (GetEventResponse) {}
+  rpc CreateEvent(EventRequest) returns (EventResponse) {}
+  rpc GetEvents(GetEventFilter) returns (stream GetEventResponse) {}
+}
+
+message EventRequest {
+  string id = 1;
+  string name = 2;
+}
+
+message EventResponse {
+  string id = 1;
+  bool success = 2;
+}
+
+message GetEventFilter {
+  string id = 1;
+}
+
+message GetEventResponse {
+  string id = 1;
+  string name = 2;
+}

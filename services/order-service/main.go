@@ -6,6 +6,7 @@ import (
 
 	"github.com/daffaromero/retries/services/purchases/service/publishers"
 	"github.com/daffaromero/retries/services/purchases/service/subscribers"
+	"github.com/daffaromero/retries/services/purchases/stream"
 )
 
 func main() {
@@ -15,7 +16,7 @@ func main() {
 	// gRPCServer := NewgRPCServer("localhost:8086")
 	// gRPCServer.Run()
 
-	js, err := JetStreamInit()
+	js, err := stream.JetStreamInit()
 	if err != nil {
 		log.Println(err)
 		return

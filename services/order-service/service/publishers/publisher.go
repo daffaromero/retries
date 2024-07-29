@@ -40,7 +40,6 @@ func PublishOrders(js nats.JetStreamContext) {
 }
 
 func getPurchases() ([]purchases.Order, error) {
-	// Log the current working directory
 	wd, err := os.Getwd()
 	if err != nil {
 		log.Printf("Error getting current working directory: %v", err)
