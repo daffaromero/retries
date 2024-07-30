@@ -32,16 +32,15 @@ func (repo *OrderQueryImpl) CreateOrder(ctx context.Context, or *pb.CreateOrderR
 }
 
 func (repo *OrderQueryImpl) GetOrder(ctx context.Context, of *pb.GetOrderFilter, customerId string) (*pb.GetOrderResponse, error) {
-	var CustomerId string
 	query := `SELECT * from orders where customer_id=$1`
-	err := repo.Db.QueryRow(ctx, query, of.CustomerId).Scan(&CustomerId)
+	err := repo.Db.QueryRow(ctx, query, customerId).Scan(&customerId)
 	if err == pgx.ErrNoRows {
 		return nil, fmt.Errorf("no records found")
 	}
 	if err != nil {
 		return nil, fmt.Errorf("GetOrder: Bad input :: %e", err)
 	} else {
-		log.Println(of.CustomerId)
+		log.Println(customerId)
 	}
 	return &pb.GetOrderResponse{Orders: []*pb.Order{}}, nil
 }

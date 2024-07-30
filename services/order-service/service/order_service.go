@@ -39,10 +39,14 @@ func (o *orderService) CreateOrder(ctx context.Context, order *pb.CreateOrderReq
 		o.logger.CustomError("Order creation failed", err)
 		return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to create order, please try again.")
 	}
-
 	return res, nil
 }
 
 func (o *orderService) GetOrder(ctx context.Context, filter *pb.GetOrderFilter, customerId string) (*pb.GetOrderResponse, error) {
-	
+	res, err := o.ordRepo.GetOrder(ctx, filter, customerId)
+	if err != nil {
+		o.logger.CustomError("Failed to get order by ID", err)
+		return nil, err
+	}
+	return res, nil
 }
