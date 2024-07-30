@@ -3,15 +3,15 @@ package repository
 import (
 	"context"
 
-	"github.com/daffaromero/retries/services/common/genproto/event"
+	pb "github.com/daffaromero/retries/services/common/genproto/orders"
 	"github.com/daffaromero/retries/services/order-service/repository/query"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type OrderRepository interface {
-	CreateOrder(context.Context, *event.EventRequest) (*event.EventResponse, error)
-	GetOrder(context.Context, *event.GetEventFilter) (*event.GetEventResponse, error)
-	GetAllOrders(context.Context, int, int) ([]*event.GetEventResponse, error)
+	CreateOrder(context.Context, *pb.CreateOrderRequest) (*pb.CreateOrderResponse, error)
+	GetOrder(context.Context, *pb.GetOrderFilter) (*pb.GetOrderResponse, error)
+	GetAllOrders(context.Context, *pb.GetOrdersRequest, pb.OrderService_GetOrdersServer) error
 }
 
 type orderRepository struct {
@@ -23,10 +23,10 @@ func NewOrderRepository(db Store, ordQuery query.OrderQuery) OrderRepository {
 	return &orderRepository{db: db, ordQuery: ordQuery}
 }
 
-func (o *orderRepository) CreateOrder(ctx context.Context, er *event.EventRequest) (*event.EventResponse, error) {
-	var res *event.EventResponse
+func (o *orderRepository) CreateOrder(ctx context.Context, ge *pb.CreateOrderRequest) (*pb.CreateOrderResponse, error) {
+	var res *pb.CreateOrderResponse
 	err := o.db.WithoutTx(ctx, func(pool *pgxpool.Pool) error {
-		re, err := o.ordQuery.CreateOrder(ctx, er)
+		re, err := o.ordQuery.CreateOrder(ctx, ge)
 		if err != nil {
 			return err
 		}
@@ -39,10 +39,10 @@ func (o *orderRepository) CreateOrder(ctx context.Context, er *event.EventReques
 	return res, nil
 }
 
-func (o *orderRepository) GetOrder(ctx context.Context, ef *event.GetEventFilter) (*event.GetEventResponse, error) {
-	var res *event.GetEventResponse
+func (o *orderRepository) GetOrder(ctx context.Context, gf *pb.GetOrderFilter) (*pb.GetOrderResponse, error) {
+	var res *pb.GetOrderResponse
 	err := o.db.WithoutTx(ctx, func(pool *pgxpool.Pool) error {
-		re, err := o.ordQuery.GetOrder(ctx, ef)
+		re, err := o.ordQuery.GetOrder(ctx, gf)
 		if err != nil {
 			return err
 		}
@@ -55,18 +55,12 @@ func (o *orderRepository) GetOrder(ctx context.Context, ef *event.GetEventFilter
 	return res, nil
 }
 
-func (o *orderRepository) GetAllOrders(ctx context.Context, count, start int) ([]*event.GetEventResponse, error) {
-	var multires []*event.GetEventResponse
+func (o *orderRepository) GetAllOrders(ctx context.Context, req *pb.GetOrdersRequest, stream pb.OrderService_GetOrdersServer) error {
 	err := o.db.WithoutTx(ctx, func(pool *pgxpool.Pool) error {
-		re, err := o.ordQuery.GetAllOrders(ctx, count, start)
-		if err != nil {
-			return err
-		}
-		multires = re
-		return nil
+		return o.ordQuery.GetAllOrders(ctx, req, stream)
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return multires, nil
+	return nil
 }

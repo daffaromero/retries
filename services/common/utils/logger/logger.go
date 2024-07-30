@@ -1,4 +1,4 @@
-package utils
+package logger
 
 import (
 	"log"
@@ -8,6 +8,12 @@ import (
 type Log struct {
 	out *log.Logger
 	err *log.Logger
+}
+
+type Options struct {
+	IsPrintStack bool
+	IsExit       bool
+	ExitCode     int
 }
 
 func NewLog(prefix string) *Log {

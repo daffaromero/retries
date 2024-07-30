@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/daffaromero/retries/services/common/utils"
+	"github.com/daffaromero/retries/services/common/utils/logger"
 	"github.com/daffaromero/retries/services/order-service/config"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -18,13 +18,13 @@ type StoreFuncs interface {
 
 type Store struct {
 	Db     *pgxpool.Pool
-	logger *utils.Log
+	logger *logger.Log
 }
 
 func NewStore(db *pgxpool.Pool) StoreFuncs {
 	return &Store{
 		Db:     db,
-		logger: utils.NewLog("database_store"),
+		logger: logger.NewLog("database_store"),
 	}
 }
 
