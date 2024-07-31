@@ -20,6 +20,12 @@ type OrderQueryImpl struct {
 	Db *pgxpool.Pool
 }
 
+func NewOrderQueryImpl(db *pgxpool.Pool) *OrderQueryImpl {
+	return &OrderQueryImpl{
+		Db: db,
+	}
+}
+
 func (repo *OrderQueryImpl) CreateOrder(ctx context.Context, or *pb.CreateOrderRequest) (*pb.CreateOrderResponse, error) {
 	query := `INSERT INTO orders (id, customer_id, product_id, quantity) VALUES ($1, $2, $3, $4) RETURNING id`
 	id := ""
@@ -64,6 +70,9 @@ func (repo *OrderQueryImpl) GetAllOrders(ctx context.Context, req *pb.GetOrdersR
 		if err := stream.Send(response); err != nil {
 			return err
 		}
+	}
+	if err := rows.Err(); err != nil {
+		return err
 	}
 	return nil
 }

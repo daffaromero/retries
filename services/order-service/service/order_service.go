@@ -50,3 +50,12 @@ func (o *orderService) GetOrder(ctx context.Context, filter *pb.GetOrderFilter, 
 	}
 	return res, nil
 }
+
+func (o *orderService) GetAllOrders(ctx context.Context, req *pb.GetOrdersRequest, srv pb.OrderService_GetOrdersServer) error {
+	err := o.ordRepo.GetAllOrders(ctx, req, srv)
+	if err != nil {
+		o.logger.CustomError("failed to get all orders", err)
+		return err
+	}
+	return nil
+}

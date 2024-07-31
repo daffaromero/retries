@@ -1,35 +1,35 @@
 package main
 
-import (
-	"log"
-	"net"
+// import (
+// 	"log"
+// 	"net"
 
-	handlers "github.com/daffaromero/retries/services/order-service/handlers/purchases"
-	"github.com/daffaromero/retries/services/order-service/service"
-	"google.golang.org/grpc"
-)
+// 	handlers "github.com/daffaromero/retries/services/order-service/handlers/purchases"
+// 	"github.com/daffaromero/retries/services/order-service/service"
+// 	"google.golang.org/grpc"
+// )
 
-type gRPCServer struct {
-	addr string
-}
+// type gRPCServer struct {
+// 	addr string
+// }
 
-func NewgRPCServer(addr string) *gRPCServer {
-	return &gRPCServer{addr: addr}
-}
+// func NewgRPCServer(addr string) *gRPCServer {
+// 	return &gRPCServer{addr: addr}
+// }
 
-func (gs *gRPCServer) Run() error {
-	lis, err := net.Listen("tcp", gs.addr)
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
+// func (gs *gRPCServer) Run() error {
+// 	lis, err := net.Listen("tcp", gs.addr)
+// 	if err != nil {
+// 		log.Fatalf("failed to listen: %v", err)
+// 	}
 
-	gRPCServer := grpc.NewServer()
+// 	gRPCServer := grpc.NewServer()
 
-	// registering gRPC services
-	purchaseService := service.NewPurchaseService()
-	handlers.NewgRPCPurchaseService(gRPCServer, purchaseService)
+// 	// registering gRPC services
+// 	purchaseService := service.NewPurchaseService()
+// 	handlers.NewgRPCPurchaseService(gRPCServer, purchaseService)
 
-	log.Println("Starting gRPC server on", gs.addr)
+// 	log.Println("Starting gRPC server on", gs.addr)
 
-	return gRPCServer.Serve(lis)
-}
+// 	return gRPCServer.Serve(lis)
+// }

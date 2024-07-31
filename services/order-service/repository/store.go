@@ -11,24 +11,24 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type StoreFuncs interface {
+type Store interface {
 	WithTx(ctx context.Context, fn func(pgx.Tx) error) error
 	WithoutTx(ctx context.Context, fn func(*pgxpool.Pool) error) error
 }
 
-type Store struct {
+type StoreImpl struct {
 	Db     *pgxpool.Pool
 	logger *logger.Log
 }
 
-func NewStore(db *pgxpool.Pool) StoreFuncs {
-	return &Store{
+func NewStore(db *pgxpool.Pool) Store {
+	return &StoreImpl{
 		Db:     db,
 		logger: logger.NewLog("database_store"),
 	}
 }
 
-func (s *Store) WithTx(ctx context.Context, fn func(pgx.Tx) error) error {
+func (s *StoreImpl) WithTx(ctx context.Context, fn func(pgx.Tx) error) error {
 	c, cancel := context.WithTimeout(context.Background(), time.Duration(config.TimeOutDuration)*time.Second)
 	defer cancel()
 
@@ -50,7 +50,7 @@ func (s *Store) WithTx(ctx context.Context, fn func(pgx.Tx) error) error {
 	return nil
 }
 
-func (s *Store) WithoutTx(ctx context.Context, fn func(*pgxpool.Pool) error) error {
+func (s *StoreImpl) WithoutTx(ctx context.Context, fn func(*pgxpool.Pool) error) error {
 	if err := fn(s.Db); err != nil {
 		return err
 	}
