@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"io"
+	"log"
 	"strconv"
 
 	pb "github.com/daffaromero/retries/services/common/genproto/orders"
@@ -11,7 +13,32 @@ import (
 	"github.com/daffaromero/retries/services/order-service/service"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
+	"google.golang.org/grpc"
 )
+
+type restOrderServiceGetOrdersServer struct {
+	grpc.ServerStream
+	results chan *pb.GetOrderResponse
+}
+
+func (x *restOrderServiceGetOrdersServer) Send(m *pb.GetOrderResponse) error {
+	x.results <- m
+	return nil
+}
+
+func newRestOrderServiceGetOrdersServer() *restOrderServiceGetOrdersServer {
+	return &restOrderServiceGetOrdersServer{
+		results: make(chan *pb.GetOrderResponse),
+	}
+}
+
+func (x *restOrderServiceGetOrdersServer) Recv() (*pb.GetOrderResponse, error) {
+	resp, ok := <-x.results
+	if !ok {
+		return nil, io.EOF
+	}
+	return resp, nil
+}
 
 type OrderController interface {
 	Route(*fiber.App)
@@ -35,7 +62,7 @@ func NewOrderController(val *validator.Validate, ordServ service.OrderService) O
 func (o *orderController) Route(app *fiber.App) {
 	api := app.Group(config.EndpointPrefix)
 	api.Post("/new", o.CreateOrder)
-	api.Get("/customer/:customer_id", o.GetOrder)
+	api.Get("/customer", o.GetOrder)
 	api.Get("/all", o.GetAllOrders)
 }
 
@@ -45,6 +72,7 @@ func (o *orderController) CreateOrder(c fiber.Ctx) error {
 	if err != nil {
 		return fiber.ErrBadRequest
 	}
+
 	ord, err := o.orderService.CreateOrder(c.Context(), req, req.CustomerId, req.ProductId, req.Quantity)
 	if err != nil {
 		return fiber.ErrInternalServerError
@@ -58,7 +86,7 @@ func (o *orderController) CreateOrder(c fiber.Ctx) error {
 
 func (o *orderController) GetOrder(c fiber.Ctx) error {
 	var req pb.GetOrderFilter
-	custId := c.Params(req.CustomerId)
+	custId := c.Query("customer_id")
 	if custId == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "customer_id not provided"})
 	}
@@ -74,8 +102,7 @@ func (o *orderController) GetOrder(c fiber.Ctx) error {
 
 func (o *orderController) GetAllOrders(c fiber.Ctx) error {
 	var req pb.GetOrdersRequest
-	var srv pb.OrderService_GetOrdersServer
-	err := c.Bind().Query(&req)
+	err := c.Bind().Body(&req)
 	if err != nil {
 		return fmt.Errorf("error binding request - %s", err)
 	}
@@ -85,16 +112,35 @@ func (o *orderController) GetAllOrders(c fiber.Ctx) error {
 	req.Count = int32(count)
 	req.Start = int32(start)
 
+	grpcServer := newRestOrderServiceGetOrdersServer()
+
+	go func() {
+		if err := o.orderService.GetAllOrders(c.Context(), &req, grpcServer); err != nil {
+			log.Printf("error getting orders: %v", err)
+		}
+		close(grpcServer.results)
+	}()
+
 	c.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSONCharsetUTF8)
 	c.Context().SetBodyStreamWriter(func(w *bufio.Writer) {
 		enc := json.NewEncoder(w)
-		err := enc.Encode(o.orderService.GetAllOrders(c.Context(), &req, srv))
-		if err != nil {
-			c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "failed to get orders"})
-			return
+		for {
+			res, err := grpcServer.Recv()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				log.Printf("error receiving order response: %v", err)
+				c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "failed to get orders"})
+				return
+			}
+			if err := enc.Encode(res); err != nil {
+				log.Printf("error encoding order response: %v", err)
+				c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "failed to encode orders"})
+				return
+			}
+			w.Flush()
 		}
-		w.Flush()
 	})
-
 	return nil
 }

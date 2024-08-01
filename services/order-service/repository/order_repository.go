@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"log"
 
 	pb "github.com/daffaromero/retries/services/common/genproto/orders"
 	"github.com/daffaromero/retries/services/order-service/repository/query"
@@ -24,6 +25,7 @@ func NewOrderRepository(db Store, ordQuery query.OrderQuery) OrderRepository {
 }
 
 func (o *orderRepository) CreateOrder(ctx context.Context, ge *pb.CreateOrderRequest) (*pb.CreateOrderResponse, error) {
+	log.Print(ge)
 	var res *pb.CreateOrderResponse
 	err := o.db.WithoutTx(ctx, func(pool *pgxpool.Pool) error {
 		re, err := o.ordQuery.CreateOrder(ctx, ge)
@@ -55,11 +57,12 @@ func (o *orderRepository) GetOrder(ctx context.Context, gf *pb.GetOrderFilter, c
 	return res, nil
 }
 
-func (o *orderRepository) GetAllOrders(ctx context.Context, req *pb.GetOrdersRequest, stream pb.OrderService_GetOrdersServer) error {
+func (o *orderRepository) GetAllOrders(ctx context.Context, req *pb.GetOrdersRequest, sm pb.OrderService_GetOrdersServer) error {
 	err := o.db.WithoutTx(ctx, func(pool *pgxpool.Pool) error {
-		return o.ordQuery.GetAllOrders(ctx, req, stream)
+		return o.ordQuery.GetAllOrders(ctx, req, sm)
 	})
 	if err != nil {
+		log.Print("the repo brokey")
 		return err
 	}
 	return nil

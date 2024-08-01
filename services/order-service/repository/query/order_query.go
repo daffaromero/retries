@@ -26,10 +26,9 @@ func NewOrderQueryImpl(db *pgxpool.Pool) *OrderQueryImpl {
 	}
 }
 
-func (repo *OrderQueryImpl) CreateOrder(ctx context.Context, or *pb.CreateOrderRequest) (*pb.CreateOrderResponse, error) {
+func (o *OrderQueryImpl) CreateOrder(ctx context.Context, or *pb.CreateOrderRequest) (*pb.CreateOrderResponse, error) {
 	query := `INSERT INTO orders (id, customer_id, product_id, quantity) VALUES ($1, $2, $3, $4) RETURNING id`
-	id := ""
-	err := repo.Db.QueryRow(ctx, query, or.CustomerId, or.ProductId, or.Quantity).Scan(&id)
+	err := o.Db.QueryRow(ctx, query, or.Id, or.CustomerId, or.ProductId, or.Quantity).Scan(&or.Id)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -37,42 +36,56 @@ func (repo *OrderQueryImpl) CreateOrder(ctx context.Context, or *pb.CreateOrderR
 	return &pb.CreateOrderResponse{Id: or.Id, Status: true}, nil
 }
 
-func (repo *OrderQueryImpl) GetOrder(ctx context.Context, of *pb.GetOrderFilter, customerId string) (*pb.GetOrderResponse, error) {
+func (o *OrderQueryImpl) GetOrder(ctx context.Context, of *pb.GetOrderFilter, customerId string) (*pb.GetOrderResponse, error) {
 	query := `SELECT * from orders where customer_id=$1`
-	err := repo.Db.QueryRow(ctx, query, customerId).Scan(&customerId)
+	rows, err := o.Db.Query(ctx, query, customerId)
 	if err == pgx.ErrNoRows {
 		return nil, fmt.Errorf("no records found")
+	} else if err != nil {
+		return nil, err
 	}
-	if err != nil {
-		return nil, fmt.Errorf("GetOrder: Bad input :: %e", err)
-	} else {
-		log.Println(customerId)
+	var orders []*pb.Order
+	for rows.Next() {
+		var order pb.Order
+		err = rows.Scan(&order.Id, &order.CustomerId, &order.ProductId, &order.Quantity)
+		if err != nil {
+			return nil, err
+		}
+		newOrder := &pb.Order{
+			Id:         order.Id,
+			CustomerId: order.CustomerId,
+			ProductId:  order.ProductId,
+			Quantity:   order.Quantity,
+		}
+		orders = append(orders, newOrder)
 	}
-	return &pb.GetOrderResponse{Orders: []*pb.Order{}}, nil
+	return &pb.GetOrderResponse{Orders: orders}, nil
 }
 
-func (repo *OrderQueryImpl) GetAllOrders(ctx context.Context, req *pb.GetOrdersRequest, stream pb.OrderService_GetOrdersServer) error {
-	query := `SELECT * from orders LIMIT $1 OFFSET $2`
-	rows, err := repo.Db.Query(ctx, query, req.Count, req.Start)
+func (o *OrderQueryImpl) GetAllOrders(ctx context.Context, req *pb.GetOrdersRequest, stream pb.OrderService_GetOrdersServer) error {
+	query := `SELECT id, customer_id, product_id, quantity FROM orders LIMIT $1 OFFSET $2`
+	rows, err := o.Db.Query(ctx, query, req.Count, req.Start)
 	if err != nil {
-		return err
+		return fmt.Errorf("query error: %v", err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		order := &pb.Order{}
-		if err := rows.Scan(&order.Id, &order.CustomerId); err != nil {
-			return err
+
+		if err := rows.Scan(&order.Id, &order.CustomerId, &order.ProductId, &order.Quantity); err != nil {
+			return fmt.Errorf("scan error: %v", err)
 		}
 		response := &pb.GetOrderResponse{
 			Orders: []*pb.Order{order},
 		}
-		if err := stream.Send(response); err != nil {
+		err := stream.Send(response)
+		if err != nil {
 			return err
 		}
 	}
 	if err := rows.Err(); err != nil {
-		return err
+		return fmt.Errorf("rows error: %v", err)
 	}
 	return nil
 }

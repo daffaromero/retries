@@ -6,7 +6,6 @@ service OrderService {
   rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse) {}
   rpc GetOrder(GetOrderFilter) returns (GetOrderResponse) {}
   rpc GetOrders(GetOrdersRequest) returns (stream GetOrderResponse) {}
-  rpc GetAllOrders(GetAllOrdersRequest) returns (stream GetOrderResponse) {}
 }
 
 message Order {
@@ -36,10 +35,6 @@ message GetOrdersRequest {
   string customer_id = 1;
   int32 count = 2;
   int32 start = 3;
-}
-
-message GetAllOrdersRequest {
-
 }
 
 message GetOrderResponse {

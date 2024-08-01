@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"log"
 
 	pb "github.com/daffaromero/retries/services/common/genproto/orders"
 	"github.com/daffaromero/retries/services/common/utils/logger"
@@ -51,8 +52,9 @@ func (o *orderService) GetOrder(ctx context.Context, filter *pb.GetOrderFilter, 
 	return res, nil
 }
 
-func (o *orderService) GetAllOrders(ctx context.Context, req *pb.GetOrdersRequest, srv pb.OrderService_GetOrdersServer) error {
-	err := o.ordRepo.GetAllOrders(ctx, req, srv)
+func (o *orderService) GetAllOrders(ctx context.Context, req *pb.GetOrdersRequest, sm pb.OrderService_GetOrdersServer) error {
+	log.Print(ctx)
+	err := o.ordRepo.GetAllOrders(ctx, req, sm)
 	if err != nil {
 		o.logger.CustomError("failed to get all orders", err)
 		return err
