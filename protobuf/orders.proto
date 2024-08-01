@@ -4,8 +4,9 @@ option go_package = "github.com/daffaromero/common/orders";
 
 service OrderService {
   rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse) {}
-  rpc GetOrder(GetOrdersRequest) returns (GetOrderResponse) {}
-  rpc GetOrders(GetOrderFilter) returns (stream GetOrderResponse) {}
+  rpc GetOrder(GetOrderFilter) returns (GetOrderResponse) {}
+  rpc GetOrders(GetOrdersRequest) returns (stream GetOrderResponse) {}
+  rpc GetAllOrders(GetAllOrdersRequest) returns (stream GetOrderResponse) {}
 }
 
 message Order {
@@ -37,6 +38,9 @@ message GetOrdersRequest {
   int32 start = 3;
 }
 
+message GetAllOrdersRequest {
+
+}
 
 message GetOrderResponse {
   repeated Order orders = 1;

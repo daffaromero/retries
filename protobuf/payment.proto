@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+option go_package = "github.com/daffaromero/common/payments";
+
+service PaymentService {
+  rpc CreatePayment(CreatePaymentRequest) returns (CreatePaymentResponse) {}
+  rpc GetPayment(GetPaymentRequest) returns (GetPaymentResponse) {}
+  rpc ListPayments(ListPaymentsRequest) returns (ListPaymentsResponse) {}
+}
+
+message Payment {
+  string id = 1;
+  string order_id = 2;
+  string customer_id = 3;
+  double amount = 4;
+  string status = 5;
+}
+
+message CreatePaymentRequest {
+  string order_id = 1;
+  string customer_id = 2;
+  double amount = 3;
+}
+
+message CreatePaymentResponse {
+  string id = 1;
+  bool status = 2;
+}
+
+message GetPaymentRequest {
+  string id = 1;
+}
+
+message GetPaymentResponse {
+  Payment payment = 1;
+}
+
+message ListPaymentsRequest {
+  string customer_id = 1;
+  int32 count = 2;
+  int32 start = 3;
+}
+
+message ListPaymentsResponse {
+  repeated Payment payments = 1;
+}

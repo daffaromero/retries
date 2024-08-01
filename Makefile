@@ -15,3 +15,9 @@ gen-order:
     --proto_path=protobuf "protobuf/orders.proto" \
     --go_out=services/common/genproto/orders --go_opt=paths=source_relative \
     --go-grpc_out=services/common/genproto/orders --go-grpc_opt=paths=source_relative
+
+gen-pay:
+	@protoc \
+    --proto_path=protobuf "protobuf/payment.proto" \
+    --go_out=services/common/genproto/payment --go_opt=paths=source_relative \
+    --go-grpc_out=services/common/genproto/payment --go-grpc_opt=paths=source_relative

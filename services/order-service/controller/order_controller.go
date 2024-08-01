@@ -3,6 +3,7 @@ package controller
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"strconv"
 
 	pb "github.com/daffaromero/retries/services/common/genproto/orders"
@@ -72,11 +73,11 @@ func (o *orderController) GetOrder(c fiber.Ctx) error {
 }
 
 func (o *orderController) GetAllOrders(c fiber.Ctx) error {
-	var req *pb.GetOrdersRequest
+	var req pb.GetOrdersRequest
 	var srv pb.OrderService_GetOrdersServer
 	err := c.Bind().Query(&req)
 	if err != nil {
-		return err
+		return fmt.Errorf("error binding request - %s", err)
 	}
 	req.CustomerId = c.Query("customer_id")
 	count, _ := strconv.Atoi(c.Query("count"))
@@ -87,7 +88,7 @@ func (o *orderController) GetAllOrders(c fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSONCharsetUTF8)
 	c.Context().SetBodyStreamWriter(func(w *bufio.Writer) {
 		enc := json.NewEncoder(w)
-		err := enc.Encode(o.orderService.GetAllOrders(c.Context(), req, srv))
+		err := enc.Encode(o.orderService.GetAllOrders(c.Context(), &req, srv))
 		if err != nil {
 			c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "failed to get orders"})
 			return
