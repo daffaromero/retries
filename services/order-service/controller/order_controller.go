@@ -13,32 +13,7 @@ import (
 	"github.com/daffaromero/retries/services/order-service/service"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
-	"google.golang.org/grpc"
 )
-
-type restOrderServiceGetOrdersServer struct {
-	grpc.ServerStream
-	results chan *pb.GetOrderResponse
-}
-
-func (x *restOrderServiceGetOrdersServer) Send(m *pb.GetOrderResponse) error {
-	x.results <- m
-	return nil
-}
-
-func newRestOrderServiceGetOrdersServer() *restOrderServiceGetOrdersServer {
-	return &restOrderServiceGetOrdersServer{
-		results: make(chan *pb.GetOrderResponse),
-	}
-}
-
-func (x *restOrderServiceGetOrdersServer) Recv() (*pb.GetOrderResponse, error) {
-	resp, ok := <-x.results
-	if !ok {
-		return nil, io.EOF
-	}
-	return resp, nil
-}
 
 type OrderController interface {
 	Route(*fiber.App)
@@ -112,7 +87,7 @@ func (o *orderController) GetAllOrders(c fiber.Ctx) error {
 	req.Count = int32(count)
 	req.Start = int32(start)
 
-	grpcServer := newRestOrderServiceGetOrdersServer()
+	grpcServer := NewRestOrderServer()
 
 	go func() {
 		if err := o.orderService.GetAllOrders(c.Context(), &req, grpcServer); err != nil {
