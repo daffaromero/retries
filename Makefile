@@ -4,6 +4,13 @@ run-purchases:
 run-products:
 	@cd services/products && go run .
 
+gen-api:
+	@protoc \
+    --proto_path=protobuf "protobuf/api.proto" \
+    --go_out=services/common/genproto/api --go_opt=paths=source_relative \
+    --go-grpc_out=services/common/genproto/api --go-grpc_opt=paths=source_relative
+
+
 gen-event:
 	@protoc \
     --proto_path=protobuf "protobuf/event.proto" \
