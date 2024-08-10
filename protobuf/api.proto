@@ -3,13 +3,6 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/daffaromero/common/api";
 
-service OrderService {
-  rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse) {}
-  rpc GetOrder(GetOrderFilter) returns (GetOrderResponse) {}
-  rpc GetOrders(GetOrdersRequest) returns (stream GetOrderResponse) {}
-  rpc UpdateOrder(Order) returns (Order) {}
-}
-
 message Cart {
   string id = 1;
   string user_id = 2;
@@ -66,6 +59,31 @@ message Order {
   google.protobuf.Timestamp created_at = 13;
   google.protobuf.Timestamp updated_at = 14;
   google.protobuf.Timestamp deleted_at = 15;
+}
+
+message Seller {
+  string id = 1;
+  string name = 2;
+  string address = 3;
+  string province = 4;
+  string city = 5;
+  string email = 6;
+  string phone_number = 7;
+  string password = 8;
+  string bank_acc = 9;
+  string bank_acc_num = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
+  google.protobuf.Timestamp deleted_at = 13;
+}
+
+message UserProduct {
+  string id = 1;
+  string user_id = 2;
+  string product_id = 3;
+  string order_id = 4;
+  string has_bought_product = 5;
+  string proof_link = 6;
 }
 
 message OrderQueryFilter {
@@ -130,9 +148,20 @@ message VariantSettings {
   int32 total_variants = 4;
 }
 
+message Category {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string is_admins = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+  google.protobuf.Timestamp deleted_at = 7;
+}
+
 message Pagination {
   int32 page = 1;
   int32 limit = 2;
+  int32 count = 3;
 }
 
 message Sorting {
@@ -140,13 +169,13 @@ message Sorting {
   bool is_reversed = 2;
 }
 
-message CartRequest {
-  repeated string product_ids = 1;
-  repeated ProductDetails products_details = 2; 
-  int32 total_payment = 3;
-  google.protobuf.Timestamp created_at = 4;
-  google.protobuf.Timestamp updated_at = 5;
-  google.protobuf.Timestamp deleted_at = 6;
+service OrderService {
+  rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse) {}
+  rpc GetOrder(GetOrderFilter) returns (GetOrderResponse) {}
+  rpc GetOrders(GetOrdersRequest) returns (stream GetOrderResponse) {}
+  rpc UpdateOrder(Order) returns (Order) {}
+  rpc UpdateCart(CartRequest) returns (Cart) {}
+  rpc GetCart(GetCartRequest) returns (Cart) {}
 }
 
 message CreateOrderRequest {
@@ -180,19 +209,39 @@ message GetOrderFilter {
 
 message GetOrdersRequest {
   string customer_id = 1;
-  int32 count = 2;
-  int32 start = 3;
+  Pagination pagination = 2;
+  Sorting sorting = 3;
+  string search = 4;
 }
 
 message GetOrderResponse {
   repeated Order orders = 1;
 }
 
+message CartRequest {
+  repeated string product_ids = 1;
+  repeated ProductDetails products_details = 2; 
+  int32 total_payment = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+  google.protobuf.Timestamp deleted_at = 6;
+}
+
+message GetCartRequest {
+  string id = 1;
+}
+
 service ProductService {
   rpc CreateProduct(Product) returns (Product) {}
-  rpc GetProduct(GetProductFilter) returns (GetProductResponse) {}
-  rpc GetProducts(GetProductsRequest) returns (stream GetProductsRequest) {}
+  rpc GetProductById(GetProductFilter) returns (GetProductResponse) {}
+  rpc GetProducts(GetProductFilter) returns (stream GetProductResponse) {}
   rpc UpdateProduct(Product) returns (Product) {}
+  rpc ApproveProduct(ApproveProductRequest) returns (ApproveProductResponse) {}
+  rpc CreateCategory(CreateCategoryRequest) returns (Category) {}
+  rpc GetCategoryById(GetCategoryFilter) returns (GetCategoryResponse) {}
+  rpc GetCategories(GetCategoryFilter) returns (stream GetCategoryResponse) {}
+  rpc UpdateCategory(CreateCategoryRequest) returns (Category) {}
+  rpc DeleteCategory(GetCategoryFilter) returns (DeleteCategoryResponse) {}
 }
 
 message CreateProductRequest {
@@ -210,18 +259,73 @@ message CreateProductResponse {
 message GetProductFilter {
   string id = 1;
   string seller_id = 2;
-}
-
-message GetProductsRequest {
-  string seller_id = 1;
-  int32 count = 2;
-  int32 start = 3;
+  Pagination pagination = 3;
+  Sorting sorting = 4;
+  string search = 5;
 }
 
 message GetProductResponse {
   repeated Product products = 1;
 }
 
-service UserService {
+message ApproveProductRequest {
+  string id = 1;
+  string product_status = 2;
+  string comment = 3;
+  string visibility = 4;
+}
 
+message ApproveProductResponse {
+  string id = 1;
+  bool status = 2;
+}
+
+message CreateCategoryRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+}
+
+message GetCategoryResponse {
+  repeated Category categories = 1;
+}
+
+message DeleteCategoryResponse {
+  bool status = 1;
+}
+
+message GetCategoryFilter {
+  string id = 1;
+  Pagination pagination = 2;
+  Sorting sorting = 3;
+  string search = 4;
+}
+
+service UserService {
+  rpc CreateUser(User) returns (User) {}
+  rpc GetAllUsers(GetAllUsersRequest) returns (stream GetUsersResponse) {}
+  rpc GetUserById(GetUsersFilter) returns (GetUsersResponse) {}
+  rpc UpdateUser(User) returns (User) {}
+  rpc DeleteUser(GetUsersFilter) returns (DeleteUserResponse) {}
+}
+
+message GetAllUsersRequest {
+  Pagination pagination = 1;
+  Sorting sorting = 2;
+  string search = 3;
+}
+
+message GetUsersResponse {
+  repeated User users = 1;
+}
+
+message GetUsersFilter {
+  string id = 1;
+  Pagination pagination = 2;
+  Sorting sorting = 3;
+  string search = 4;
+}
+
+message DeleteUserResponse {
+  bool status = 1;
 }

@@ -7,8 +7,8 @@ run-products:
 gen-api:
 	@protoc \
     --proto_path=protobuf "protobuf/api.proto" \
-    --go_out=services/common/genproto/api --go_opt=paths=source_relative \
-    --go-grpc_out=services/common/genproto/api --go-grpc_opt=paths=source_relative
+    --go_out=services/common/genproto/grpc-api --go_opt=paths=source_relative \
+    --go-grpc_out=services/common/genproto/grpc-api --go-grpc_opt=paths=source_relative
 
 
 gen-event:

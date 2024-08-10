@@ -37,7 +37,7 @@ func (o *OrderQueryImpl) CreateOrder(ctx context.Context, or *pb.CreateOrderRequ
 }
 
 func (o *OrderQueryImpl) GetOrder(ctx context.Context, of *pb.GetOrderFilter, customerId string) (*pb.GetOrderResponse, error) {
-	query := `SELECT * from orders where customer_id=$1`
+	query := `SELECT * from orders WHERE customer_id=$1`
 	rows, err := o.Db.Query(ctx, query, customerId)
 	if err == pgx.ErrNoRows {
 		return nil, fmt.Errorf("no records found")
