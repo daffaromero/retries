@@ -237,10 +237,10 @@ service ProductService {
   rpc GetProducts(GetProductFilter) returns (stream GetProductResponse) {}
   rpc UpdateProduct(Product) returns (Product) {}
   rpc ApproveProduct(ApproveProductRequest) returns (ApproveProductResponse) {}
-  rpc CreateCategory(CreateCategoryRequest) returns (Category) {}
+  rpc CreateCategory(Category) returns (Category) {}
   rpc GetCategoryById(GetCategoryFilter) returns (GetCategoryResponse) {}
   rpc GetCategories(GetCategoryFilter) returns (stream GetCategoryResponse) {}
-  rpc UpdateCategory(CreateCategoryRequest) returns (Category) {}
+  rpc UpdateCategory(Category) returns (Category) {}
   rpc DeleteCategory(GetCategoryFilter) returns (DeleteCategoryResponse) {}
 }
 

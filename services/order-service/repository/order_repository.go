@@ -11,7 +11,7 @@ import (
 
 type OrderRepository interface {
 	CreateOrder(context.Context, *pb.CreateOrderRequest) (*pb.CreateOrderResponse, error)
-	GetOrder(context.Context, *pb.GetOrderFilter, string) (*pb.GetOrderResponse, error)
+	GetOrder(context.Context, *pb.GetOrderFilter) (*pb.GetOrderResponse, error)
 	GetAllOrders(context.Context, *pb.GetOrdersRequest, pb.OrderService_GetOrdersServer) error
 }
 
@@ -25,7 +25,6 @@ func NewOrderRepository(db Store, ordQuery query.OrderQuery) OrderRepository {
 }
 
 func (o *orderRepository) CreateOrder(ctx context.Context, ge *pb.CreateOrderRequest) (*pb.CreateOrderResponse, error) {
-	log.Print(ge)
 	var res *pb.CreateOrderResponse
 	err := o.db.WithoutTx(ctx, func(pool *pgxpool.Pool) error {
 		re, err := o.ordQuery.CreateOrder(ctx, ge)
@@ -41,10 +40,10 @@ func (o *orderRepository) CreateOrder(ctx context.Context, ge *pb.CreateOrderReq
 	return res, nil
 }
 
-func (o *orderRepository) GetOrder(ctx context.Context, gf *pb.GetOrderFilter, customerId string) (*pb.GetOrderResponse, error) {
+func (o *orderRepository) GetOrder(ctx context.Context, gf *pb.GetOrderFilter) (*pb.GetOrderResponse, error) {
 	var res *pb.GetOrderResponse
 	err := o.db.WithoutTx(ctx, func(pool *pgxpool.Pool) error {
-		re, err := o.ordQuery.GetOrder(ctx, gf, customerId)
+		re, err := o.ordQuery.GetOrder(ctx, gf)
 		if err != nil {
 			return err
 		}

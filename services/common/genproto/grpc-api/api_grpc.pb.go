@@ -321,10 +321,10 @@ type ProductServiceClient interface {
 	GetProducts(ctx context.Context, in *GetProductFilter, opts ...grpc.CallOption) (ProductService_GetProductsClient, error)
 	UpdateProduct(ctx context.Context, in *Product, opts ...grpc.CallOption) (*Product, error)
 	ApproveProduct(ctx context.Context, in *ApproveProductRequest, opts ...grpc.CallOption) (*ApproveProductResponse, error)
-	CreateCategory(ctx context.Context, in *CreateCategoryRequest, opts ...grpc.CallOption) (*Category, error)
+	CreateCategory(ctx context.Context, in *Category, opts ...grpc.CallOption) (*Category, error)
 	GetCategoryById(ctx context.Context, in *GetCategoryFilter, opts ...grpc.CallOption) (*GetCategoryResponse, error)
 	GetCategories(ctx context.Context, in *GetCategoryFilter, opts ...grpc.CallOption) (ProductService_GetCategoriesClient, error)
-	UpdateCategory(ctx context.Context, in *CreateCategoryRequest, opts ...grpc.CallOption) (*Category, error)
+	UpdateCategory(ctx context.Context, in *Category, opts ...grpc.CallOption) (*Category, error)
 	DeleteCategory(ctx context.Context, in *GetCategoryFilter, opts ...grpc.CallOption) (*DeleteCategoryResponse, error)
 }
 
@@ -404,7 +404,7 @@ func (c *productServiceClient) ApproveProduct(ctx context.Context, in *ApprovePr
 	return out, nil
 }
 
-func (c *productServiceClient) CreateCategory(ctx context.Context, in *CreateCategoryRequest, opts ...grpc.CallOption) (*Category, error) {
+func (c *productServiceClient) CreateCategory(ctx context.Context, in *Category, opts ...grpc.CallOption) (*Category, error) {
 	out := new(Category)
 	err := c.cc.Invoke(ctx, "/ProductService/CreateCategory", in, out, opts...)
 	if err != nil {
@@ -454,7 +454,7 @@ func (x *productServiceGetCategoriesClient) Recv() (*GetCategoryResponse, error)
 	return m, nil
 }
 
-func (c *productServiceClient) UpdateCategory(ctx context.Context, in *CreateCategoryRequest, opts ...grpc.CallOption) (*Category, error) {
+func (c *productServiceClient) UpdateCategory(ctx context.Context, in *Category, opts ...grpc.CallOption) (*Category, error) {
 	out := new(Category)
 	err := c.cc.Invoke(ctx, "/ProductService/UpdateCategory", in, out, opts...)
 	if err != nil {
@@ -481,10 +481,10 @@ type ProductServiceServer interface {
 	GetProducts(*GetProductFilter, ProductService_GetProductsServer) error
 	UpdateProduct(context.Context, *Product) (*Product, error)
 	ApproveProduct(context.Context, *ApproveProductRequest) (*ApproveProductResponse, error)
-	CreateCategory(context.Context, *CreateCategoryRequest) (*Category, error)
+	CreateCategory(context.Context, *Category) (*Category, error)
 	GetCategoryById(context.Context, *GetCategoryFilter) (*GetCategoryResponse, error)
 	GetCategories(*GetCategoryFilter, ProductService_GetCategoriesServer) error
-	UpdateCategory(context.Context, *CreateCategoryRequest) (*Category, error)
+	UpdateCategory(context.Context, *Category) (*Category, error)
 	DeleteCategory(context.Context, *GetCategoryFilter) (*DeleteCategoryResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
@@ -508,7 +508,7 @@ func (UnimplementedProductServiceServer) UpdateProduct(context.Context, *Product
 func (UnimplementedProductServiceServer) ApproveProduct(context.Context, *ApproveProductRequest) (*ApproveProductResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ApproveProduct not implemented")
 }
-func (UnimplementedProductServiceServer) CreateCategory(context.Context, *CreateCategoryRequest) (*Category, error) {
+func (UnimplementedProductServiceServer) CreateCategory(context.Context, *Category) (*Category, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateCategory not implemented")
 }
 func (UnimplementedProductServiceServer) GetCategoryById(context.Context, *GetCategoryFilter) (*GetCategoryResponse, error) {
@@ -517,7 +517,7 @@ func (UnimplementedProductServiceServer) GetCategoryById(context.Context, *GetCa
 func (UnimplementedProductServiceServer) GetCategories(*GetCategoryFilter, ProductService_GetCategoriesServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetCategories not implemented")
 }
-func (UnimplementedProductServiceServer) UpdateCategory(context.Context, *CreateCategoryRequest) (*Category, error) {
+func (UnimplementedProductServiceServer) UpdateCategory(context.Context, *Category) (*Category, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateCategory not implemented")
 }
 func (UnimplementedProductServiceServer) DeleteCategory(context.Context, *GetCategoryFilter) (*DeleteCategoryResponse, error) {
@@ -630,7 +630,7 @@ func _ProductService_ApproveProduct_Handler(srv interface{}, ctx context.Context
 }
 
 func _ProductService_CreateCategory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateCategoryRequest)
+	in := new(Category)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -642,7 +642,7 @@ func _ProductService_CreateCategory_Handler(srv interface{}, ctx context.Context
 		FullMethod: "/ProductService/CreateCategory",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProductServiceServer).CreateCategory(ctx, req.(*CreateCategoryRequest))
+		return srv.(ProductServiceServer).CreateCategory(ctx, req.(*Category))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -687,7 +687,7 @@ func (x *productServiceGetCategoriesServer) Send(m *GetCategoryResponse) error {
 }
 
 func _ProductService_UpdateCategory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateCategoryRequest)
+	in := new(Category)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -699,7 +699,7 @@ func _ProductService_UpdateCategory_Handler(srv interface{}, ctx context.Context
 		FullMethod: "/ProductService/UpdateCategory",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProductServiceServer).UpdateCategory(ctx, req.(*CreateCategoryRequest))
+		return srv.(ProductServiceServer).UpdateCategory(ctx, req.(*Category))
 	}
 	return interceptor(ctx, in, info, handler)
 }

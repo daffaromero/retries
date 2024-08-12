@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	pb "github.com/daffaromero/retries/services/common/genproto/grpc-api"
 	"github.com/jackc/pgx/v5"
@@ -11,34 +12,38 @@ import (
 )
 
 type CategoryQuery interface {
-	CreateCategory(context.Context, *pb.CreateCategoryRequest) (*pb.Category, error)
-	GetCategoryById(context.Context, *pb.GetCategoryFilter, string) (*pb.GetCategoryResponse, error)
-	GetCategories(context.Context, *pb.GetCategoryFilter, *pb.ProductService_GetCategoriesServer) error
+	CreateCategory(context.Context, *pb.Category) (*pb.Category, error)
+	GetCategoryById(context.Context, *pb.GetCategoryFilter) (*pb.GetCategoryResponse, error)
+	GetCategories(context.Context, *pb.GetCategoryFilter, pb.ProductService_GetCategoriesServer) error
+	UpdateCategory(context.Context, *pb.Category) (*pb.Category, error)
+	DeleteCategory(context.Context, *pb.GetCategoryFilter) (*pb.DeleteCategoryResponse, error)
 }
 
 type CategoryQueryImpl struct {
-	Db *pgxpool.Pool
+	db *pgxpool.Pool
+	tx pgx.Tx
 }
 
-func NewCategoryQueryImpl(db *pgxpool.Pool) *CategoryQueryImpl {
+func NewCategoryQueryImpl(db *pgxpool.Pool, tx pgx.Tx) *CategoryQueryImpl {
 	return &CategoryQueryImpl{
-		Db: db,
+		db: db,
+		tx: tx,
 	}
 }
 
-func (c *CategoryQueryImpl) CreateCategory(ctx context.Context, ca *pb.Category) (*pb.Category, error) {
+func (c *CategoryQueryImpl) CreateCategory(ctx context.Context, req *pb.Category) (*pb.Category, error) {
 	query := `INSERT INTO categories (id, name, description, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)`
-	err := c.Db.QueryRow(ctx, query, ca.Id, ca.Name, ca.Description, ca.CreatedAt, ca.UpdatedAt).Scan(&ca.Id)
+	err := c.tx.QueryRow(ctx, query, req.Id, req.Name, req.Description, req.CreatedAt, req.UpdatedAt).Scan(&req.Id)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-	return &pb.Category{Id: ca.Id, Name: ca.Name, Description: ca.Description}, nil
+	return &pb.Category{Id: req.Id, Name: req.Name, Description: req.Description}, nil
 }
 
-func (c *CategoryQueryImpl) GetCategoryById(ctx context.Context, ca *pb.GetCategoryFilter, catId string) (*pb.GetCategoryResponse, error) {
+func (c *CategoryQueryImpl) GetCategoryById(ctx context.Context, req *pb.GetCategoryFilter) (*pb.GetCategoryResponse, error) {
 	query := `SELECT id, name, description FROM categories WHERE id=$1`
-	rows, err := c.Db.Query(ctx, query, catId)
+	rows, err := c.db.Query(ctx, query, req.Id)
 	if err == pgx.ErrNoRows {
 		return nil, fmt.Errorf("no records found")
 	} else if err != nil {
@@ -63,9 +68,9 @@ func (c *CategoryQueryImpl) GetCategoryById(ctx context.Context, ca *pb.GetCateg
 
 func (c *CategoryQueryImpl) GetCategories(ctx context.Context, req *pb.GetCategoryFilter, stream pb.ProductService_GetCategoriesServer) error {
 	query := `SELECT id, name, description FROM categories LIMIT $1 OFFSET $2`
-	rows, err := c.Db.Query(ctx, query, req.Pagination.Count, req.Pagination.Limit)
+	rows, err := c.db.Query(ctx, query, req.Pagination.Count, req.Pagination.Limit)
 	if err != nil {
-		return fmt.Errorf("query error: %v", err)
+		return fmt.Errorf("get all query error: %v", err)
 	}
 	defer rows.Close()
 
@@ -87,4 +92,25 @@ func (c *CategoryQueryImpl) GetCategories(ctx context.Context, req *pb.GetCatego
 		return fmt.Errorf("rows error: %v", err)
 	}
 	return nil
+}
+
+func (c *CategoryQueryImpl) UpdateCategory(ctx context.Context, req *pb.Category) (*pb.Category, error) {
+	query := `UPDATE categories SET name $1 description $2, updated_at $3 WHERE id = $4`
+	err := c.tx.QueryRow(ctx, query, req.Id, req.Name, req.Description, req.UpdatedAt).Scan(&req.Id)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	return &pb.Category{Id: req.Id, Name: req.Name, Description: req.Description}, nil
+}
+
+func (c *CategoryQueryImpl) DeleteCategory(ctx context.Context, req *pb.GetCategoryFilter) (*pb.DeleteCategoryResponse, error) {
+	query := `UPDATE categories SET deleted_at = $1 WHERE id = $2`
+	rows, err := c.tx.Query(ctx, query, time.Now(), req.Id)
+	if err != nil {
+		return nil, fmt.Errorf("delete query error: %v", err)
+	}
+	defer rows.Close()
+
+	return &pb.DeleteCategoryResponse{Status: true}, nil
 }

@@ -13,7 +13,7 @@ import (
 
 type OrderService interface {
 	CreateOrder(context.Context, *pb.CreateOrderRequest, string, string, int32) (*pb.CreateOrderResponse, error)
-	GetOrder(context.Context, *pb.GetOrderFilter, string) (*pb.GetOrderResponse, error)
+	GetOrder(context.Context, *pb.GetOrderFilter) (*pb.GetOrderResponse, error)
 	GetAllOrders(context.Context, *pb.GetOrdersRequest, pb.OrderService_GetOrdersServer) error
 }
 
@@ -43,8 +43,8 @@ func (o *orderService) CreateOrder(ctx context.Context, order *pb.CreateOrderReq
 	return res, nil
 }
 
-func (o *orderService) GetOrder(ctx context.Context, filter *pb.GetOrderFilter, customerId string) (*pb.GetOrderResponse, error) {
-	res, err := o.ordRepo.GetOrder(ctx, filter, customerId)
+func (o *orderService) GetOrder(ctx context.Context, filter *pb.GetOrderFilter) (*pb.GetOrderResponse, error) {
+	res, err := o.ordRepo.GetOrder(ctx, filter)
 	if err != nil {
 		o.logger.CustomError("Failed to get order by ID", err)
 		return nil, err

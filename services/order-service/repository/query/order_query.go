@@ -12,7 +12,7 @@ import (
 
 type OrderQuery interface {
 	CreateOrder(context.Context, *pb.CreateOrderRequest) (*pb.CreateOrderResponse, error)
-	GetOrder(context.Context, *pb.GetOrderFilter, string) (*pb.GetOrderResponse, error)
+	GetOrder(context.Context, *pb.GetOrderFilter) (*pb.GetOrderResponse, error)
 	GetAllOrders(context.Context, *pb.GetOrdersRequest, pb.OrderService_GetOrdersServer) error
 }
 
@@ -36,9 +36,9 @@ func (o *OrderQueryImpl) CreateOrder(ctx context.Context, or *pb.CreateOrderRequ
 	return &pb.CreateOrderResponse{Id: or.Id, Status: true}, nil
 }
 
-func (o *OrderQueryImpl) GetOrder(ctx context.Context, of *pb.GetOrderFilter, customerId string) (*pb.GetOrderResponse, error) {
+func (o *OrderQueryImpl) GetOrder(ctx context.Context, of *pb.GetOrderFilter) (*pb.GetOrderResponse, error) {
 	query := `SELECT * from orders WHERE customer_id=$1`
-	rows, err := o.Db.Query(ctx, query, customerId)
+	rows, err := o.Db.Query(ctx, query, of.CustomerId)
 	if err == pgx.ErrNoRows {
 		return nil, fmt.Errorf("no records found")
 	} else if err != nil {

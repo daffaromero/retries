@@ -61,11 +61,11 @@ func (o *orderController) CreateOrder(c fiber.Ctx) error {
 
 func (o *orderController) GetOrder(c fiber.Ctx) error {
 	var req pb.GetOrderFilter
-	custId := c.Query("customer_id")
-	if custId == "" {
+	req.CustomerId = c.Query("customer_id")
+	if req.CustomerId == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "customer_id not provided"})
 	}
-	ord, err := o.orderService.GetOrder(c.Context(), &req, custId)
+	ord, err := o.orderService.GetOrder(c.Context(), &req)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "failed to get order for customer"})
 	}
