@@ -12,28 +12,26 @@ import (
 )
 
 type CategoryQuery interface {
-	CreateCategory(context.Context, *pb.Category) (*pb.Category, error)
+	CreateCategory(context.Context, pgx.Tx, *pb.Category) (*pb.Category, error)
 	GetCategoryById(context.Context, *pb.GetCategoryFilter) (*pb.GetCategoryResponse, error)
 	GetCategories(context.Context, *pb.GetCategoryFilter, pb.ProductService_GetCategoriesServer) error
-	UpdateCategory(context.Context, *pb.Category) (*pb.Category, error)
-	DeleteCategory(context.Context, *pb.GetCategoryFilter) (*pb.DeleteCategoryResponse, error)
+	UpdateCategory(context.Context, pgx.Tx, *pb.Category) (*pb.Category, error)
+	DeleteCategory(context.Context, pgx.Tx, *pb.GetCategoryFilter) (*pb.DeleteCategoryResponse, error)
 }
 
 type CategoryQueryImpl struct {
 	db *pgxpool.Pool
-	tx pgx.Tx
 }
 
-func NewCategoryQueryImpl(db *pgxpool.Pool, tx pgx.Tx) *CategoryQueryImpl {
+func NewCategoryQueryImpl(db *pgxpool.Pool) *CategoryQueryImpl {
 	return &CategoryQueryImpl{
 		db: db,
-		tx: tx,
 	}
 }
 
-func (c *CategoryQueryImpl) CreateCategory(ctx context.Context, req *pb.Category) (*pb.Category, error) {
+func (c *CategoryQueryImpl) CreateCategory(ctx context.Context, tx pgx.Tx, req *pb.Category) (*pb.Category, error) {
 	query := `INSERT INTO categories (id, name, description, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)`
-	err := c.tx.QueryRow(ctx, query, req.Id, req.Name, req.Description, req.CreatedAt, req.UpdatedAt).Scan(&req.Id)
+	err := tx.QueryRow(ctx, query, req.Id, req.Name, req.Description, req.CreatedAt, req.UpdatedAt).Scan(&req.Id)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -94,9 +92,9 @@ func (c *CategoryQueryImpl) GetCategories(ctx context.Context, req *pb.GetCatego
 	return nil
 }
 
-func (c *CategoryQueryImpl) UpdateCategory(ctx context.Context, req *pb.Category) (*pb.Category, error) {
+func (c *CategoryQueryImpl) UpdateCategory(ctx context.Context, tx pgx.Tx, req *pb.Category) (*pb.Category, error) {
 	query := `UPDATE categories SET name $1 description $2, updated_at $3 WHERE id = $4`
-	err := c.tx.QueryRow(ctx, query, req.Id, req.Name, req.Description, req.UpdatedAt).Scan(&req.Id)
+	err := tx.QueryRow(ctx, query, req.Id, req.Name, req.Description, req.UpdatedAt).Scan(&req.Id)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -104,9 +102,9 @@ func (c *CategoryQueryImpl) UpdateCategory(ctx context.Context, req *pb.Category
 	return &pb.Category{Id: req.Id, Name: req.Name, Description: req.Description}, nil
 }
 
-func (c *CategoryQueryImpl) DeleteCategory(ctx context.Context, req *pb.GetCategoryFilter) (*pb.DeleteCategoryResponse, error) {
+func (c *CategoryQueryImpl) DeleteCategory(ctx context.Context, tx pgx.Tx, req *pb.GetCategoryFilter) (*pb.DeleteCategoryResponse, error) {
 	query := `UPDATE categories SET deleted_at = $1 WHERE id = $2`
-	rows, err := c.tx.Query(ctx, query, time.Now(), req.Id)
+	rows, err := tx.Query(ctx, query, time.Now(), req.Id)
 	if err != nil {
 		return nil, fmt.Errorf("delete query error: %v", err)
 	}

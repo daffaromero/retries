@@ -98,16 +98,16 @@ message OrderQueryFilter {
 
 message Product {
   string id = 1;
-  string partner_id = 2;
+  string seller_id = 2;
   string category_id = 3;
   string category_name = 4;
   repeated string variant_ids = 5;
   string name = 6;
-  string partner_name = 7;
+  string seller_name = 7;
   string description = 8;
-  google.protobuf.Timestamp open_time = 9;
-  google.protobuf.Timestamp close_time = 10;
-  string enrollment_key = 11;
+  google.protobuf.Timestamp vis_time = 9;
+  google.protobuf.Timestamp invis_time = 10;
+  string insider_key = 11;
   string voucher = 12;
   int32 voucher_discount = 13;
   int32 total_duration = 14;
@@ -242,18 +242,6 @@ service ProductService {
   rpc GetCategories(GetCategoryFilter) returns (stream GetCategoryResponse) {}
   rpc UpdateCategory(Category) returns (Category) {}
   rpc DeleteCategory(GetCategoryFilter) returns (DeleteCategoryResponse) {}
-}
-
-message CreateProductRequest {
-  string id = 1;
-  string name = 2;
-  string price_id = 3;
-  string seller_id = 4;
-}
-
-message CreateProductResponse {
-  string id = 1;
-  bool status = 2;
 }
 
 message GetProductFilter {

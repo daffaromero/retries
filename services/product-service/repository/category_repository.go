@@ -29,7 +29,7 @@ func NewCategoryRepository(db Store, catQuery query.CategoryQuery) CategoryRepos
 func (c *CategoryRepositoryImpl) CreateCategory(ctx context.Context, req *pb.Category) (*pb.Category, error) {
 	var res *pb.Category
 	err := c.db.WithTx(ctx, func(tx pgx.Tx) error {
-		cat, err := c.catQuery.CreateCategory(ctx, req)
+		cat, err := c.catQuery.CreateCategory(ctx, tx, req)
 		if err != nil {
 			return err
 		}
@@ -70,7 +70,7 @@ func (c *CategoryRepositoryImpl) GetCategories(ctx context.Context, req *pb.GetC
 func (c *CategoryRepositoryImpl) UpdateCategory(ctx context.Context, req *pb.Category) (*pb.Category, error) {
 	var res *pb.Category
 	err := c.db.WithTx(ctx, func(tx pgx.Tx) error {
-		cat, err := c.catQuery.UpdateCategory(ctx, req)
+		cat, err := c.catQuery.UpdateCategory(ctx, tx, req)
 		if err != nil {
 			return err
 		}
@@ -86,7 +86,7 @@ func (c *CategoryRepositoryImpl) UpdateCategory(ctx context.Context, req *pb.Cat
 func (c *CategoryRepositoryImpl) DeleteCategory(ctx context.Context, req *pb.GetCategoryFilter) (*pb.DeleteCategoryResponse, error) {
 	var res *pb.DeleteCategoryResponse
 	err := c.db.WithTx(ctx, func(tx pgx.Tx) error {
-		cat, err := c.catQuery.DeleteCategory(ctx, req)
+		cat, err := c.catQuery.DeleteCategory(ctx, tx, req)
 		if err != nil {
 			return err
 		}
