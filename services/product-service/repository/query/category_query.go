@@ -54,19 +54,19 @@ func (c *CategoryQueryImpl) GetCategoryById(ctx context.Context, req *pb.GetCate
 		if err != nil {
 			return nil, err
 		}
-		newCategory := &pb.Category{
+		categoryWithId := &pb.Category{
 			Id:          category.Id,
 			Name:        category.Name,
 			Description: category.Description,
 		}
-		categories = append(categories, newCategory)
+		categories = append(categories, categoryWithId)
 	}
 	return &pb.GetCategoryResponse{Categories: categories}, nil
 }
 
 func (c *CategoryQueryImpl) GetCategories(ctx context.Context, req *pb.GetCategoryFilter, stream pb.ProductService_GetCategoriesServer) error {
 	query := `SELECT id, name, description FROM categories LIMIT $1 OFFSET $2`
-	rows, err := c.db.Query(ctx, query, req.Pagination.Count, req.Pagination.Limit)
+	rows, err := c.db.Query(ctx, query, req.Pagination.Limit, req.Pagination.Offset)
 	if err != nil {
 		return fmt.Errorf("get all query error: %v", err)
 	}

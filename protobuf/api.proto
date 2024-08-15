@@ -161,7 +161,7 @@ message Category {
 message Pagination {
   int32 page = 1;
   int32 limit = 2;
-  int32 count = 3;
+  int32 offset = 3;
 }
 
 message Sorting {
@@ -247,9 +247,19 @@ service ProductService {
 message GetProductFilter {
   string id = 1;
   string seller_id = 2;
-  Pagination pagination = 3;
-  Sorting sorting = 4;
-  string search = 5;
+  string vis_early = 3;
+  string vis_late = 4;
+  string invis_early = 5;
+  string invis_late = 6;
+  string visibility = 7;
+  string exclusion = 8;
+  string is_admin_verified = 9;
+  int32 lowest_price = 10;
+  int32 highest_price = 11;
+  repeated Category categories = 12;
+  Pagination pagination = 13;
+  Sorting sorting = 14;
+  string search = 15;
 }
 
 message GetProductResponse {
