@@ -3,23 +3,6 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/daffaromero/common/api";
 
-<<<<<<< HEAD
-=======
-message Cart {
-  string id = 1;
-  string user_id = 2;
-  string user_name = 3;
-  string user_email = 4;
-  string user_phone = 5;
-  repeated string product_ids = 6;
-  repeated ProductDetails products_details = 7;
-  int32 total_payment = 8;
-  google.protobuf.Timestamp created_at = 9;
-  google.protobuf.Timestamp updated_at = 10;
-  google.protobuf.Timestamp deleted_at = 11;
-}
-
->>>>>>> 0e07b87fbf4446536d32081f8c55fe3390d3a46d
 message ProductDetails {
   string id = 1;
   string name = 2;
@@ -49,7 +32,6 @@ message User {
 message Order {
   string id = 1;
   string user_id = 2;
-<<<<<<< HEAD
   repeated string product_ids = 3;
   repeated ProductDetails products_details = 4;
   int32 total_payment = 5;
@@ -60,21 +42,6 @@ message Order {
   google.protobuf.Timestamp created_at = 10;
   google.protobuf.Timestamp updated_at = 11;
   google.protobuf.Timestamp deleted_at = 12;
-=======
-  string user_name = 3;
-  string user_email = 4;
-  string user_phone = 5;
-  repeated string product_ids = 6;
-  repeated ProductDetails products_details = 7;
-  int32 total_payment = 8;
-  string settlement_status = 9;
-  bool is_private = 10;
-  bool is_private_approved = 11;
-  string private_seller_id = 12;
-  google.protobuf.Timestamp created_at = 13;
-  google.protobuf.Timestamp updated_at = 14;
-  google.protobuf.Timestamp deleted_at = 15;
->>>>>>> 0e07b87fbf4446536d32081f8c55fe3390d3a46d
 }
 
 message Seller {
@@ -186,7 +153,6 @@ message Sorting {
 }
 
 service OrderService {
-<<<<<<< HEAD
   rpc CreateOrder(Order) returns (Order) {}
   rpc GetOrder(GetOrderFilter) returns (GetOrderResponse) {}
   rpc GetOrders(GetOrdersRequest) returns (stream GetOrderResponse) {}
@@ -279,24 +245,6 @@ message Shipping {
 }
 
 
-=======
-  rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse) {}
-  rpc GetOrder(GetOrderFilter) returns (GetOrderResponse) {}
-  rpc GetOrders(GetOrdersRequest) returns (stream GetOrderResponse) {}
-  rpc UpdateOrder(Order) returns (Order) {}
-  rpc UpdateCart(CartRequest) returns (Cart) {}
-  rpc GetCart(GetCartRequest) returns (Cart) {}
-}
-
-message CreateOrderRequest {
-  string cart_id = 1;
-}
-
-message CreateOrderResponse {
-  StripePaymentIntentResponse data = 1;
-}
-
->>>>>>> 0e07b87fbf4446536d32081f8c55fe3390d3a46d
 message StripePaymentIntentResponse {
   string id = 1;
   string object = 2;
@@ -329,22 +277,6 @@ message GetOrderResponse {
   repeated Order orders = 1;
 }
 
-<<<<<<< HEAD
-=======
-message CartRequest {
-  repeated string product_ids = 1;
-  repeated ProductDetails products_details = 2; 
-  int32 total_payment = 3;
-  google.protobuf.Timestamp created_at = 4;
-  google.protobuf.Timestamp updated_at = 5;
-  google.protobuf.Timestamp deleted_at = 6;
-}
-
-message GetCartRequest {
-  string id = 1;
-}
-
->>>>>>> 0e07b87fbf4446536d32081f8c55fe3390d3a46d
 service ProductService {
   rpc CreateProduct(Product) returns (Product) {}
   rpc GetProductById(GetProductFilter) returns (GetProductResponse) {}
