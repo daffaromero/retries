@@ -1,0 +1,375 @@
+syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/daffaromero/common/api";
+
+message ProductDetails {
+  string id = 1;
+  string name = 2;
+  string category = 3;
+  string seller_name = 4;
+  string voucher = 5;
+  int32 price = 6;
+}
+
+message User {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  string phone_number = 4;
+  string password = 5;
+  string sex = 6;
+  string user_type = 7;
+  string institution = 8;
+  string address = 9;
+  string province = 10;
+  string city = 11;
+  google.protobuf.Timestamp created_at = 12;
+  google.protobuf.Timestamp updated_at = 13;
+  google.protobuf.Timestamp deleted_at = 14;
+}
+
+message Order {
+  string id = 1;
+  string user_id = 2;
+  repeated string product_ids = 3;
+  repeated ProductDetails products_details = 4;
+  int32 total_payment = 5;
+  string settlement_status = 6;
+  bool is_private = 7;
+  bool is_private_approved = 8;
+  string private_seller_id = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+  google.protobuf.Timestamp deleted_at = 12;
+}
+
+message Seller {
+  string id = 1;
+  string name = 2;
+  string address = 3;
+  string province = 4;
+  string city = 5;
+  string email = 6;
+  string phone_number = 7;
+  string password = 8;
+  string bank_acc = 9;
+  string bank_acc_num = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
+  google.protobuf.Timestamp deleted_at = 13;
+}
+
+message UserProduct {
+  string id = 1;
+  string user_id = 2;
+  string product_id = 3;
+  string order_id = 4;
+  string has_bought_product = 5;
+  string proof_link = 6;
+}
+
+message OrderQueryFilter {
+  string earliest = 1;
+  string latest = 2;
+  string exclusion = 3;
+  string settlement_status = 4;
+  Pagination pagination = 5;
+  Sorting sorting = 6;
+  string search = 7;
+}
+
+message Product {
+  string id = 1;
+  string seller_id = 2;
+  string category_id = 3;
+  string category_name = 4;
+  repeated string variant_ids = 5;
+  string name = 6;
+  string seller_name = 7;
+  string description = 8;
+  google.protobuf.Timestamp vis_time = 9;
+  google.protobuf.Timestamp invis_time = 10;
+  string insider_key = 11;
+  string voucher = 12;
+  int32 voucher_discount = 13;
+  int32 total_duration = 14;
+  repeated VariantSettings variant_settings = 15;
+  bool is_reviewable = 16;
+  string is_admin_verified = 17;
+  string admin_comment = 18;
+  string visibility = 19;
+  string exclusion = 20;
+  int32 price = 21;
+  string pict_url = 22;
+  string cert_url = 23;
+  int32 flat_price = 24;
+  int32 percentage_price = 25;
+  google.protobuf.Timestamp created_at = 26;
+  google.protobuf.Timestamp updated_at = 27;
+  google.protobuf.Timestamp deleted_at = 28;
+}
+
+message ProductQueryFilter {
+  string earliest = 1;
+  string latest = 2;
+  string visibility = 3;
+  string exclusion = 4;
+  string is_admin_verified = 5;
+  string lower_price = 6;
+  string upper_price = 7;
+  repeated string categories = 8;
+  Pagination pagination = 9;
+  Sorting sorting = 10;
+  string search = 11;
+}
+
+message VariantSettings {
+  string id = 1;
+  string name = 2;
+  int32 duration = 3;
+  int32 total_variants = 4;
+}
+
+message Category {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string is_admins = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+  google.protobuf.Timestamp deleted_at = 7;
+}
+
+message Pagination {
+  int32 page = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+message Sorting {
+  string order_by = 1;
+  bool is_reversed = 2;
+}
+
+service OrderService {
+  rpc CreateOrder(Order) returns (Order) {}
+  rpc GetOrder(GetOrderFilter) returns (GetOrderResponse) {}
+  rpc GetOrders(GetOrdersRequest) returns (stream GetOrderResponse) {}
+  rpc UpdateOrder(Order) returns (Order) {}
+  rpc SendOrder(SendOrderRequest) returns (SendOrderResponse) {}
+}
+
+message SendOrderRequest {
+  string order_id = 1;
+}
+
+message SendOrderResponse {
+  PaymentIntent data = 1;
+}
+
+message PaymentIntent {
+  string id = 1;
+  int64 amount = 2;
+  AutomaticPaymentMethods automatic_payment_methods = 3;
+  string client_secret = 4;
+  string currency = 5;
+  string customer = 6;
+  string description = 7;
+  string latest_charge = 8;
+  map<string, string> metadata = 9;
+  NextAction next_action = 10;
+  string payment_method = 11;
+  string receipt_email = 12;
+  enum SetupFutureUsage {
+    SETUP_FUTURE_USAGE_UNSPECIFIED = 0;
+    SETUP_FUTURE_USAGE_OFF_SESSION = 1;
+  }
+  SetupFutureUsage setup_future_usage = 13;
+  string status = 14;
+}
+
+message AutomaticPaymentMethods {
+  enum AllowRedirects {
+    ALLOW_REDIRECTS_UNSPECIFIED = 0;
+    ALLOW_REDIRECTS_ALWAYS = 1;
+    ALLOW_REDIRECTS_NEVER = 2;
+  }
+  AllowRedirects allow_redirects = 1;
+  bool enabled = 2;
+}
+
+message NextAction {
+  enum Type {
+    TYPE_UNSPECIFIED = 0;
+    TYPE_REDIRECT_TO_URL = 1;
+    TYPE_USE_STRIPE_SDK = 2;
+  }
+  Type type = 1;
+  RedirectToURL redirect_to_url = 2;
+  UseStripeSDK use_stripe_sdk = 3;
+
+  message RedirectToURL {
+    string return_url = 1;
+    string url = 2;
+  }
+
+  message UseStripeSDK {
+    // This message is typically empty in the Stripe API
+    // but we include it for future extensibility
+  }
+}
+
+message PaymentError {
+  string charge = 1;
+  string code = 2;
+  string decline_code = 3;
+  string doc_url = 4;
+  string message = 5;
+  string param = 6;
+  PaymentMethod payment_method = 7;
+
+}
+
+message PaymentMethod {
+  string id = 1;
+  string object = 2;
+}
+
+message Shipping {
+  string address = 1;
+  string carrier = 2;
+  string name = 3;
+  string phone = 4;
+  string tracking_number = 5;
+}
+
+
+message StripePaymentIntentResponse {
+  string id = 1;
+  string object = 2;
+  int64 amount = 3;
+  int64 amount_capturable = 4;
+  int64 amount_received = 5;
+  string currency = 6;
+  string description = 7;
+  string receipt_email = 8;
+  string status = 9;
+  google.protobuf.Timestamp created = 10;
+  google.protobuf.Timestamp updated = 11;
+  string client_secret = 12;
+  string payment_method = 13;
+  string receipt_url = 14;
+}
+
+message GetOrderFilter {
+  string customer_id = 1;
+}
+
+message GetOrdersRequest {
+  string customer_id = 1;
+  Pagination pagination = 2;
+  Sorting sorting = 3;
+  string search = 4;
+}
+
+message GetOrderResponse {
+  repeated Order orders = 1;
+}
+
+service ProductService {
+  rpc CreateProduct(Product) returns (Product) {}
+  rpc GetProductById(GetProductFilter) returns (GetProductResponse) {}
+  rpc GetProducts(GetProductFilter) returns (stream GetProductResponse) {}
+  rpc UpdateProduct(Product) returns (Product) {}
+  rpc ApproveProduct(ApproveProductRequest) returns (ApproveProductResponse) {}
+  rpc CreateCategory(Category) returns (Category) {}
+  rpc GetCategoryById(GetCategoryFilter) returns (GetCategoryResponse) {}
+  rpc GetCategories(GetCategoryFilter) returns (stream GetCategoryResponse) {}
+  rpc UpdateCategory(Category) returns (Category) {}
+  rpc DeleteCategory(GetCategoryFilter) returns (DeleteCategoryResponse) {}
+}
+
+message GetProductFilter {
+  string id = 1;
+  string seller_id = 2;
+  string vis_early = 3;
+  string vis_late = 4;
+  string invis_early = 5;
+  string invis_late = 6;
+  string visibility = 7;
+  string exclusion = 8;
+  string is_admin_verified = 9;
+  int32 lowest_price = 10;
+  int32 highest_price = 11;
+  repeated Category categories = 12;
+  Pagination pagination = 13;
+  Sorting sorting = 14;
+  string search = 15;
+}
+
+message GetProductResponse {
+  repeated Product products = 1;
+}
+
+message ApproveProductRequest {
+  string id = 1;
+  string product_status = 2;
+  string comment = 3;
+  string visibility = 4;
+}
+
+message ApproveProductResponse {
+  string id = 1;
+  bool status = 2;
+}
+
+message CreateCategoryRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+}
+
+message GetCategoryResponse {
+  repeated Category categories = 1;
+}
+
+message DeleteCategoryResponse {
+  bool status = 1;
+}
+
+message GetCategoryFilter {
+  string id = 1;
+  Pagination pagination = 2;
+  Sorting sorting = 3;
+  string search = 4;
+}
+
+service UserService {
+  rpc CreateUser(User) returns (User) {}
+  rpc GetAllUsers(GetAllUsersRequest) returns (stream GetUsersResponse) {}
+  rpc GetUserById(GetUsersFilter) returns (GetUsersResponse) {}
+  rpc UpdateUser(User) returns (User) {}
+  rpc DeleteUser(GetUsersFilter) returns (DeleteUserResponse) {}
+}
+
+message GetAllUsersRequest {
+  Pagination pagination = 1;
+  Sorting sorting = 2;
+  string search = 3;
+}
+
+message GetUsersResponse {
+  repeated User users = 1;
+}
+
+message GetUsersFilter {
+  string id = 1;
+  Pagination pagination = 2;
+  Sorting sorting = 3;
+  string search = 4;
+}
+
+message DeleteUserResponse {
+  bool status = 1;
+}
