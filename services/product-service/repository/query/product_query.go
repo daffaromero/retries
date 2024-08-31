@@ -103,7 +103,11 @@ func (p *ProductQueryImpl) GetProducts(c context.Context, req *pb.GetProductFilt
 	var variantSettings pb.VariantSettings
 	filter, page, sort, earliest, latest, err := ProductFilters("user", req)
 	if err != nil {
+<<<<<<< HEAD
 		return fmt.Errorf("error building product filters, %v", err)
+=======
+		return fmt.Errorf("error building product filters", err)
+>>>>>>> 0e07b87fbf4446536d32081f8c55fe3390d3a46d
 	}
 	query := fmt.Sprintf(`SELECT id, seller_id, category_id, category_name, variant_ids, name, seller_name, description, vis_time, invis_time, insider_key, voucher, voucher_discount, total_duration, variant_settings, is_reviewable, is_admin_verified, visibility, exclusion, price, pict_url, cert_url, flat_price, percentage_price, created_at, updated_at FROM products WHERE deleted_at IS NULL %s %s %s`, filter, sort, page)
 	rows, err := p.db.Query(c, query, earliest, latest)

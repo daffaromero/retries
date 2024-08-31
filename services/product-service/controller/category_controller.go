@@ -87,10 +87,17 @@ func (c *CategoryControllerImpl) GetCategories(ctx fiber.Ctx) error {
 	if err != nil {
 		return fmt.Errorf("error binding request - %s", err)
 	}
+<<<<<<< HEAD
 	offset, _ := strconv.Atoi(ctx.Query("offset"))
 	limit, _ := strconv.Atoi(ctx.Query("limit"))
 	page, _ := strconv.Atoi(ctx.Query("page"))
 	req.Pagination.Offset = int32(offset)
+=======
+	count, _ := strconv.Atoi(ctx.Query("count"))
+	limit, _ := strconv.Atoi(ctx.Query("limit"))
+	page, _ := strconv.Atoi(ctx.Query("page"))
+	req.Pagination.Count = int32(count)
+>>>>>>> 0e07b87fbf4446536d32081f8c55fe3390d3a46d
 	req.Pagination.Limit = int32(limit)
 	req.Pagination.Page = int32(page)
 

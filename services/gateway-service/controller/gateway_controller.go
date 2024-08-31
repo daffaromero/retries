@@ -9,4 +9,3 @@ type gateway struct {
 func NewGRPCGateway(registry discovery.Registry) *gateway {
 	return &gateway{registry}
 }
-
