@@ -17,16 +17,16 @@ type CategoryRepository interface {
 	DeleteCategory(context.Context, *pb.GetCategoryFilter) (*pb.DeleteCategoryResponse, error)
 }
 
-type CategoryRepositoryImpl struct {
+type categoryRepository struct {
 	db       Store
 	catQuery query.CategoryQuery
 }
 
 func NewCategoryRepository(db Store, catQuery query.CategoryQuery) CategoryRepository {
-	return &CategoryRepositoryImpl{db: db, catQuery: catQuery}
+	return &categoryRepository{db: db, catQuery: catQuery}
 }
 
-func (c *CategoryRepositoryImpl) CreateCategory(ctx context.Context, req *pb.Category) (*pb.Category, error) {
+func (c *categoryRepository) CreateCategory(ctx context.Context, req *pb.Category) (*pb.Category, error) {
 	var res *pb.Category
 	err := c.db.WithTx(ctx, func(tx pgx.Tx) error {
 		cat, err := c.catQuery.CreateCategory(ctx, tx, req)
@@ -42,7 +42,7 @@ func (c *CategoryRepositoryImpl) CreateCategory(ctx context.Context, req *pb.Cat
 	return res, nil
 }
 
-func (c *CategoryRepositoryImpl) GetCategoryById(ctx context.Context, req *pb.GetCategoryFilter) (*pb.GetCategoryResponse, error) {
+func (c *categoryRepository) GetCategoryById(ctx context.Context, req *pb.GetCategoryFilter) (*pb.GetCategoryResponse, error) {
 	var res *pb.GetCategoryResponse
 	err := c.db.WithoutTx(ctx, func(pool *pgxpool.Pool) error {
 		cat, err := c.catQuery.GetCategoryById(ctx, req)
@@ -58,7 +58,7 @@ func (c *CategoryRepositoryImpl) GetCategoryById(ctx context.Context, req *pb.Ge
 	return res, nil
 }
 
-func (c *CategoryRepositoryImpl) GetCategories(ctx context.Context, req *pb.GetCategoryFilter, sv pb.ProductService_GetCategoriesServer) error {
+func (c *categoryRepository) GetCategories(ctx context.Context, req *pb.GetCategoryFilter, sv pb.ProductService_GetCategoriesServer) error {
 	if err := c.db.WithoutTx(ctx, func(pool *pgxpool.Pool) error {
 		return c.catQuery.GetCategories(ctx, req, sv)
 	}); err != nil {
@@ -67,7 +67,7 @@ func (c *CategoryRepositoryImpl) GetCategories(ctx context.Context, req *pb.GetC
 	return nil
 }
 
-func (c *CategoryRepositoryImpl) UpdateCategory(ctx context.Context, req *pb.Category) (*pb.Category, error) {
+func (c *categoryRepository) UpdateCategory(ctx context.Context, req *pb.Category) (*pb.Category, error) {
 	var res *pb.Category
 	err := c.db.WithTx(ctx, func(tx pgx.Tx) error {
 		cat, err := c.catQuery.UpdateCategory(ctx, tx, req)
@@ -83,7 +83,7 @@ func (c *CategoryRepositoryImpl) UpdateCategory(ctx context.Context, req *pb.Cat
 	return res, nil
 }
 
-func (c *CategoryRepositoryImpl) DeleteCategory(ctx context.Context, req *pb.GetCategoryFilter) (*pb.DeleteCategoryResponse, error) {
+func (c *categoryRepository) DeleteCategory(ctx context.Context, req *pb.GetCategoryFilter) (*pb.DeleteCategoryResponse, error) {
 	var res *pb.DeleteCategoryResponse
 	err := c.db.WithTx(ctx, func(tx pgx.Tx) error {
 		cat, err := c.catQuery.DeleteCategory(ctx, tx, req)

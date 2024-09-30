@@ -3,56 +3,62 @@ package repository
 import (
 	"context"
 	"fmt"
-	"log"
 
 	pb "github.com/daffaromero/retries/services/common/genproto/grpc-api"
 	"github.com/daffaromero/retries/services/order-service/repository/query"
+	"github.com/daffaromero/retries/services/payment-service/processor"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/stripe/stripe-go/paymentintent"
 	"github.com/stripe/stripe-go/v79"
 )
 
 type OrderRepository interface {
-	CreateOrder(context.Context, *pb.CreateOrderRequest) (*pb.CreateOrderResponse, error)
+	CreateOrder(context.Context, *pb.Order) (*pb.Order, error)
 	GetOrder(context.Context, *pb.GetOrderFilter) (*pb.GetOrderResponse, error)
-	GetAllOrders(context.Context, *pb.GetOrdersRequest, pb.OrderService_GetOrdersServer) error
-	SendOrder(context.Context, pgx.Tx, *pb.SendOrderRequest) (*stripe.PaymentIntent, error)
+	GetAllOrders(context.Context, *pb.GetOrdersRequest) (*pb.GetOrderResponse, error)
+	SendOrder(context.Context, pgx.Tx, *pb.SendOrderRequest) (*stripe.PaymentLink, error)
 }
 
 type orderRepository struct {
-	db       Store
-	ordQuery query.OrderQuery
+	db        Store
+	ordQuery  query.OrderQuery
+	processor processor.Stripe
 }
 
 func NewOrderRepository(db Store, ordQuery query.OrderQuery) OrderRepository {
 	return &orderRepository{db: db, ordQuery: ordQuery}
 }
 
-func (o *orderRepository) CreateOrder(ctx context.Context, ge *pb.CreateOrderRequest) (*pb.CreateOrderResponse, error) {
-	var res *pb.CreateOrderResponse
-	err := o.db.WithoutTx(ctx, func(pool *pgxpool.Pool) error {
-		re, err := o.ordQuery.CreateOrder(ctx, ge)
-		if err != nil {
-			return err
+func (o *orderRepository) CreateOrder(c context.Context, ord *pb.Order) (*pb.Order, error) {
+	var res *pb.Order
+	if err := o.db.WithTx(c, func(tx pgx.Tx) error {
+		if _, err := o.ordQuery.GetOrder(c, &pb.GetOrderFilter{CustomerId: ord.CustomerId}); err == nil {
+			if err == pgx.ErrNoRows {
+				re, err := o.ordQuery.CreateOrder(c, tx, ord)
+				if err != nil {
+					return err
+				}
+				res = re
+			}
+			if len(ord.ProductIds) == 0 {
+				return err
+			}
 		}
-		res = re
 		return nil
-	})
-	if err != nil {
+	}); err != nil {
 		return nil, err
 	}
 	return res, nil
 }
 
-func (o *orderRepository) GetOrder(ctx context.Context, gf *pb.GetOrderFilter) (*pb.GetOrderResponse, error) {
+func (o *orderRepository) GetOrder(c context.Context, fil *pb.GetOrderFilter) (*pb.GetOrderResponse, error) {
 	var res *pb.GetOrderResponse
-	err := o.db.WithoutTx(ctx, func(pool *pgxpool.Pool) error {
-		re, err := o.ordQuery.GetOrder(ctx, gf)
+	err := o.db.WithoutTx(c, func(pool *pgxpool.Pool) error {
+		ord, err := o.ordQuery.GetOrder(c, fil)
 		if err != nil {
 			return err
 		}
-		res = re
+		res = ord
 		return nil
 	})
 	if err != nil {
@@ -61,66 +67,30 @@ func (o *orderRepository) GetOrder(ctx context.Context, gf *pb.GetOrderFilter) (
 	return res, nil
 }
 
-func (o *orderRepository) GetAllOrders(ctx context.Context, req *pb.GetOrdersRequest, sm pb.OrderService_GetOrdersServer) error {
-	err := o.db.WithoutTx(ctx, func(pool *pgxpool.Pool) error {
-		return o.ordQuery.GetAllOrders(ctx, req, sm)
+func (o *orderRepository) GetAllOrders(c context.Context, req *pb.GetOrdersRequest) (*pb.GetOrderResponse, error) {
+	var res *pb.GetOrderResponse
+	err := o.db.WithoutTx(c, func(pool *pgxpool.Pool) error {
+		ords, err := o.ordQuery.GetOrders(c, req)
+		if err != nil {
+			return err
+		}
+		res = ords
+		return nil
 	})
 	if err != nil {
-		log.Print("the repo brokey")
-		return err
+		return nil, err
 	}
-	return nil
+	return res, nil
 }
 
-func (o *orderRepository) SendOrder(ctx context.Context, tx pgx.Tx, req *pb.SendOrderRequest) error {
-
-	// todo fix the whole file lol
-	params := &stripe.PaymentIntentParams{
-		Params: stripe.Params{
-			Metadata: map[string]string{
-				"order_id": order.Id,
-			},
-		},
-		Amount:               stripe.Int64(int64(order.TotalPayment)),
-		ApplicationFeeAmount: nil,
-		AutomaticPaymentMethods: &stripe.PaymentIntentAutomaticPaymentMethodsParams{
-			Enabled: stripe.Bool(true),
-		},
-		CaptureMethod:              stripe.String(string(stripe.PaymentIntentCaptureMethodAutomatic)),
-		ClientSecret:               nil,
-		Confirm:                    stripe.Bool(true),
-		ConfirmationMethod:         stripe.String(string(stripe.PaymentIntentConfirmationMethodAutomatic)),
-		ConfirmationToken:          nil,
-		Currency:                   stripe.String("idr"),
-		Customer:                   stripe.String(order.UserId),
-		Description:                stripe.String("Payment for order " + order.Id),
-		Expand:                     []*string{stripe.String("customer")},
-		Mandate:                    nil,
-		MandateData:                nil,
-		Metadata:                   map[string]string{"order_id": order.Id},
-		OnBehalfOf:                 nil,
-		PaymentMethod:              nil,
-		PaymentMethodConfiguration: nil,
-		PaymentMethodData:          nil,
-		PaymentMethodOptions:       nil,
-		PaymentMethodTypes:         []*string{stripe.String("card")},
-		RadarOptions:               nil,
-		ReceiptEmail:               stripe.String(order.UserId), // Assuming UserId is the email, replace with actual email if available
-		ReturnURL:                  stripe.String("https://your-return-url.com"),
-		SetupFutureUsage:           stripe.String(string(stripe.PaymentIntentSetupFutureUsageOffSession)),
-		Shipping:                   nil,
-		StatementDescriptor:        stripe.String("Your descriptor"),
-		StatementDescriptorSuffix:  stripe.String("Order"),
-		TransferData:               nil,
-		TransferGroup:              nil,
-		ErrorOnRequiresAction:      stripe.Bool(false),
-		OffSession:                 stripe.Bool(true),
-		UseStripeSDK:               stripe.Bool(true),
-	}
-
-	paymentIntent, err := paymentintent.New(params)
+func (o *orderRepository) SendOrder(c context.Context, tx pgx.Tx, req *pb.SendOrderRequest) (*stripe.PaymentLink, error) {
+	err := o.ordQuery.SendOrder(c, tx, req, "pending")
 	if err != nil {
-		return nil, fmt.Errorf("failed to create payment intent: %w", err)
+		return nil, fmt.Errorf("failed to send order: %w", err)
 	}
-
+	pl, err := o.processor.CreatePaymentLink(req)
+	if err != nil {
+		return nil, err
+	}
+	return &stripe.PaymentLink{URL: pl}, nil
 }

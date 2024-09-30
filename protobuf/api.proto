@@ -31,7 +31,7 @@ message User {
 
 message Order {
   string id = 1;
-  string user_id = 2;
+  string customer_id = 2;
   repeated string product_ids = 3;
   repeated ProductDetails products_details = 4;
   int32 total_payment = 5;
@@ -60,9 +60,9 @@ message Seller {
   google.protobuf.Timestamp deleted_at = 13;
 }
 
-message UserProduct {
+message CustomerProduct {
   string id = 1;
-  string user_id = 2;
+  string customer_id = 2;
   string product_id = 3;
   string order_id = 4;
   string has_bought_product = 5;
@@ -155,7 +155,7 @@ message Sorting {
 service OrderService {
   rpc CreateOrder(Order) returns (Order) {}
   rpc GetOrder(GetOrderFilter) returns (GetOrderResponse) {}
-  rpc GetOrders(GetOrdersRequest) returns (stream GetOrderResponse) {}
+  rpc GetOrders(GetOrdersRequest) returns (GetOrderResponse) {}
   rpc UpdateOrder(Order) returns (Order) {}
   rpc SendOrder(SendOrderRequest) returns (SendOrderResponse) {}
 }
@@ -165,7 +165,7 @@ message SendOrderRequest {
 }
 
 message SendOrderResponse {
-  PaymentIntent data = 1;
+  string payment_link = 1;
 }
 
 message PaymentIntent {
@@ -321,7 +321,9 @@ message ApproveProductRequest {
 
 message ApproveProductResponse {
   string id = 1;
-  bool status = 2;
+  string status = 2;
+  string comment = 3;
+  string visibility = 4;
 }
 
 message CreateCategoryRequest {

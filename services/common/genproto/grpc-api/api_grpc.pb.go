@@ -24,7 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type OrderServiceClient interface {
 	CreateOrder(ctx context.Context, in *Order, opts ...grpc.CallOption) (*Order, error)
 	GetOrder(ctx context.Context, in *GetOrderFilter, opts ...grpc.CallOption) (*GetOrderResponse, error)
-	GetOrders(ctx context.Context, in *GetOrdersRequest, opts ...grpc.CallOption) (OrderService_GetOrdersClient, error)
+	GetOrders(ctx context.Context, in *GetOrdersRequest, opts ...grpc.CallOption) (*GetOrderResponse, error)
 	UpdateOrder(ctx context.Context, in *Order, opts ...grpc.CallOption) (*Order, error)
 	SendOrder(ctx context.Context, in *SendOrderRequest, opts ...grpc.CallOption) (*SendOrderResponse, error)
 }
@@ -55,36 +55,13 @@ func (c *orderServiceClient) GetOrder(ctx context.Context, in *GetOrderFilter, o
 	return out, nil
 }
 
-func (c *orderServiceClient) GetOrders(ctx context.Context, in *GetOrdersRequest, opts ...grpc.CallOption) (OrderService_GetOrdersClient, error) {
-	stream, err := c.cc.NewStream(ctx, &OrderService_ServiceDesc.Streams[0], "/OrderService/GetOrders", opts...)
+func (c *orderServiceClient) GetOrders(ctx context.Context, in *GetOrdersRequest, opts ...grpc.CallOption) (*GetOrderResponse, error) {
+	out := new(GetOrderResponse)
+	err := c.cc.Invoke(ctx, "/OrderService/GetOrders", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &orderServiceGetOrdersClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type OrderService_GetOrdersClient interface {
-	Recv() (*GetOrderResponse, error)
-	grpc.ClientStream
-}
-
-type orderServiceGetOrdersClient struct {
-	grpc.ClientStream
-}
-
-func (x *orderServiceGetOrdersClient) Recv() (*GetOrderResponse, error) {
-	m := new(GetOrderResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
+	return out, nil
 }
 
 func (c *orderServiceClient) UpdateOrder(ctx context.Context, in *Order, opts ...grpc.CallOption) (*Order, error) {
@@ -111,7 +88,7 @@ func (c *orderServiceClient) SendOrder(ctx context.Context, in *SendOrderRequest
 type OrderServiceServer interface {
 	CreateOrder(context.Context, *Order) (*Order, error)
 	GetOrder(context.Context, *GetOrderFilter) (*GetOrderResponse, error)
-	GetOrders(*GetOrdersRequest, OrderService_GetOrdersServer) error
+	GetOrders(context.Context, *GetOrdersRequest) (*GetOrderResponse, error)
 	UpdateOrder(context.Context, *Order) (*Order, error)
 	SendOrder(context.Context, *SendOrderRequest) (*SendOrderResponse, error)
 	mustEmbedUnimplementedOrderServiceServer()
@@ -127,8 +104,8 @@ func (UnimplementedOrderServiceServer) CreateOrder(context.Context, *Order) (*Or
 func (UnimplementedOrderServiceServer) GetOrder(context.Context, *GetOrderFilter) (*GetOrderResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOrder not implemented")
 }
-func (UnimplementedOrderServiceServer) GetOrders(*GetOrdersRequest, OrderService_GetOrdersServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetOrders not implemented")
+func (UnimplementedOrderServiceServer) GetOrders(context.Context, *GetOrdersRequest) (*GetOrderResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOrders not implemented")
 }
 func (UnimplementedOrderServiceServer) UpdateOrder(context.Context, *Order) (*Order, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateOrder not implemented")
@@ -185,25 +162,22 @@ func _OrderService_GetOrder_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
-func _OrderService_GetOrders_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(GetOrdersRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
+func _OrderService_GetOrders_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOrdersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
 	}
-	return srv.(OrderServiceServer).GetOrders(m, &orderServiceGetOrdersServer{stream})
-}
-
-type OrderService_GetOrdersServer interface {
-	Send(*GetOrderResponse) error
-	grpc.ServerStream
-}
-
-type orderServiceGetOrdersServer struct {
-	grpc.ServerStream
-}
-
-func (x *orderServiceGetOrdersServer) Send(m *GetOrderResponse) error {
-	return x.ServerStream.SendMsg(m)
+	if interceptor == nil {
+		return srv.(OrderServiceServer).GetOrders(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/OrderService/GetOrders",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).GetOrders(ctx, req.(*GetOrdersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _OrderService_UpdateOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -258,6 +232,10 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _OrderService_GetOrder_Handler,
 		},
 		{
+			MethodName: "GetOrders",
+			Handler:    _OrderService_GetOrders_Handler,
+		},
+		{
 			MethodName: "UpdateOrder",
 			Handler:    _OrderService_UpdateOrder_Handler,
 		},
@@ -266,13 +244,7 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _OrderService_SendOrder_Handler,
 		},
 	},
-	Streams: []grpc.StreamDesc{
-		{
-			StreamName:    "GetOrders",
-			Handler:       _OrderService_GetOrders_Handler,
-			ServerStreams: true,
-		},
-	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "api.proto",
 }
 

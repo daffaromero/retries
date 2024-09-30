@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"strings"
-	"time"
 
 	pb "github.com/daffaromero/retries/services/common/genproto/grpc-api"
 	"github.com/daffaromero/retries/services/common/utils/logger"
@@ -34,19 +33,15 @@ func NewCategoryService(catRepo repository.CategoryRepository, logger *logger.Lo
 }
 
 func (c *CategoryServiceImpl) CreateCategory(ctx context.Context, cat *pb.Category, name, desc string) (*pb.Category, error) {
+	now := timestamppb.Now()
 	cat.Id = uuid.New().String()
 	cat.Name = name
 	cat.Description = desc
-	cat.CreatedAt = &timestamppb.Timestamp{
-		Seconds: time.Now().Unix(),
-		Nanos:   int32(time.Now().Nanosecond()),
-	}
-	cat.UpdatedAt = &timestamppb.Timestamp{
-		Seconds: time.Now().Unix(),
-		Nanos:   int32(time.Now().Nanosecond()),
-	}
+	cat.CreatedAt = now
+	cat.UpdatedAt = now
+
 	res, err := c.catRepo.CreateCategory(ctx, cat)
-	if res != nil {
+	if err != nil {
 		c.logger.CustomError("Category creation failed", err)
 		if strings.Contains(err.Error(), "duplicate key value") {
 			return nil, fiber.NewError(fiber.StatusBadRequest, "Category already exists.")
@@ -67,6 +62,7 @@ func (c *CategoryServiceImpl) GetCategoryById(ctx context.Context, filter *pb.Ge
 
 func (c *CategoryServiceImpl) GetCategories(ctx context.Context, filter *pb.GetCategoryFilter, sv pb.ProductService_GetCategoriesServer) error {
 	if err := c.catRepo.GetCategories(ctx, filter, sv); err != nil {
+		c.logger.CustomError("Failed to get categories", err)
 		return err
 	}
 	return nil
@@ -75,10 +71,8 @@ func (c *CategoryServiceImpl) GetCategories(ctx context.Context, filter *pb.GetC
 func (c *CategoryServiceImpl) UpdateCategory(ctx context.Context, cat *pb.Category, name, desc string) (*pb.Category, error) {
 	cat.Name = name
 	cat.Description = desc
-	cat.UpdatedAt = &timestamppb.Timestamp{
-		Seconds: time.Now().Unix(),
-		Nanos:   int32(time.Now().Nanosecond()),
-	}
+	cat.UpdatedAt = timestamppb.Now()
+
 	res, err := c.catRepo.UpdateCategory(ctx, cat)
 	if err != nil {
 		c.logger.CustomError("Failed to update category", err)

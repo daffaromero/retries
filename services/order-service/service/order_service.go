@@ -4,21 +4,24 @@ import (
 	"context"
 	"log"
 
-	pb "github.com/daffaromero/retries/services/common/genproto/orders"
+	pb "github.com/daffaromero/retries/services/common/genproto/grpc-api"
 	"github.com/daffaromero/retries/services/common/utils/logger"
 	"github.com/daffaromero/retries/services/order-service/repository"
+	"github.com/daffaromero/retries/services/product-service/repository"
 	"github.com/gofiber/fiber/v3"
-	"github.com/google/uuid"
+	"github.com/stripe/stripe-go/v79"
 )
 
 type OrderService interface {
-	CreateOrder(context.Context, *pb.CreateOrderRequest, string, string, int32) (*pb.CreateOrderResponse, error)
+	CreateOrder(c context.Context, ord *pb.Order, id string, name string, phone string, email string) (*pb.Order, error)
 	GetOrder(context.Context, *pb.GetOrderFilter) (*pb.GetOrderResponse, error)
-	GetAllOrders(context.Context, *pb.GetOrdersRequest, pb.OrderService_GetOrdersServer) error
+	GetAllOrders(context.Context, *pb.GetOrdersRequest) (*pb.GetOrderResponse, error)
+	SendOrder(context.Context, *pb.SendOrderRequest) (*stripe.PaymentLink, error)
 }
 
 type orderService struct {
 	ordRepo repository.OrderRepository
+	prodRepo repository.ProductRepository
 	logger  *logger.Log
 }
 
@@ -29,11 +32,16 @@ func NewOrderService(ordRepo repository.OrderRepository, logger *logger.Log) Ord
 	}
 }
 
-func (o *orderService) CreateOrder(ctx context.Context, order *pb.CreateOrderRequest, customerId string, productId string, quantity int32) (*pb.CreateOrderResponse, error) {
-	order.Id = uuid.New().String()
-	order.CustomerId = customerId
-	order.ProductId = productId
-	order.Quantity = quantity
+func (o *orderService) CreateOrder(c context.Context, ord *pb.Order) (*pb.Order, error) {
+	var prDet []*pb.ProductDetails
+	var prIds []string
+	var total int
+
+	if len(ord.ProductIds) == 0 {
+		for _, p := range ord.ProductsDetails {
+			product, err := o.productRepo
+		}
+	}
 
 	res, err := o.ordRepo.CreateOrder(ctx, order)
 	if err != nil {
