@@ -11,7 +11,7 @@ import (
 
 type ProductRepository interface {
 	CreateProduct(c context.Context, product *pb.Product) (*pb.Product, error)
-	GetProductById(c context.Context, filter *pb.GetProductFilter) (*pb.GetProductResponse, error)
+	GetProductByID(c context.Context, filter *pb.GetProductFilter) (*pb.GetProductResponse, error)
 	GetAllProducts(c context.Context, filter *pb.GetProductFilter) (*pb.GetProductResponse, error)
 	UpdateProduct(c context.Context, product *pb.Product) (*pb.Product, error)
 	ApproveProduct(c context.Context, approve *pb.ApproveProductRequest) (*pb.ApproveProductResponse, error)
@@ -42,10 +42,10 @@ func (p *productRepository) CreateProduct(c context.Context, product *pb.Product
 	return res, nil
 }
 
-func (p *productRepository) GetProductById(c context.Context, filter *pb.GetProductFilter) (*pb.GetProductResponse, error) {
+func (p *productRepository) GetProductByID(c context.Context, filter *pb.GetProductFilter) (*pb.GetProductResponse, error) {
 	var res *pb.GetProductResponse
 	err := p.db.WithoutTx(c, func(pool *pgxpool.Pool) error {
-		prod, err := p.productQuery.GetProductById(c, filter)
+		prod, err := p.productQuery.GetProductByID(c, filter)
 		if err != nil {
 			return err
 		}

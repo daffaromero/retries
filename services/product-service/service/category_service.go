@@ -13,11 +13,11 @@ import (
 )
 
 type CategoryService interface {
-	CreateCategory(context.Context, *pb.Category, string, string) (*pb.Category, error)
-	GetCategoryById(context.Context, *pb.GetCategoryFilter) (*pb.GetCategoryResponse, error)
-	GetCategories(context.Context, *pb.GetCategoryFilter, pb.ProductService_GetCategoriesServer) error
-	UpdateCategory(context.Context, *pb.Category, string, string) (*pb.Category, error)
-	DeleteCategory(context.Context, *pb.GetCategoryFilter) (*pb.DeleteCategoryResponse, error)
+	CreateCategory(c context.Context, cat *pb.Category, name, desc string) (*pb.Category, error)
+	GetCategoryByID(c context.Context, fil *pb.GetCategoryFilter) (*pb.GetCategoryResponse, error)
+	GetCategories(c context.Context, fil *pb.GetCategoryFilter) (*pb.GetCategoryResponse, error)
+	UpdateCategory(c context.Context, cat *pb.Category, name, desc string) (*pb.Category, error)
+	DeleteCategory(c context.Context, fil *pb.GetCategoryFilter) (*pb.DeleteCategoryResponse, error)
 }
 
 type CategoryServiceImpl struct {
@@ -51,8 +51,8 @@ func (c *CategoryServiceImpl) CreateCategory(ctx context.Context, cat *pb.Catego
 	return res, nil
 }
 
-func (c *CategoryServiceImpl) GetCategoryById(ctx context.Context, filter *pb.GetCategoryFilter) (*pb.GetCategoryResponse, error) {
-	res, err := c.catRepo.GetCategoryById(ctx, filter)
+func (c *CategoryServiceImpl) GetCategoryByID(ctx context.Context, fil *pb.GetCategoryFilter) (*pb.GetCategoryResponse, error) {
+	res, err := c.catRepo.GetCategoryByID(ctx, fil)
 	if err != nil {
 		c.logger.CustomError("Failed to get category by ID", err)
 		return nil, err
@@ -60,12 +60,13 @@ func (c *CategoryServiceImpl) GetCategoryById(ctx context.Context, filter *pb.Ge
 	return res, nil
 }
 
-func (c *CategoryServiceImpl) GetCategories(ctx context.Context, filter *pb.GetCategoryFilter, sv pb.ProductService_GetCategoriesServer) error {
-	if err := c.catRepo.GetCategories(ctx, filter, sv); err != nil {
+func (c *CategoryServiceImpl) GetCategories(ctx context.Context, fil *pb.GetCategoryFilter) (*pb.GetCategoryResponse, error) {
+	categories, err := c.catRepo.GetCategories(ctx, fil)
+	if err != nil {
 		c.logger.CustomError("Failed to get categories", err)
-		return err
+		return nil, err
 	}
-	return nil
+	return categories, nil
 }
 
 func (c *CategoryServiceImpl) UpdateCategory(ctx context.Context, cat *pb.Category, name, desc string) (*pb.Category, error) {

@@ -14,9 +14,9 @@ import (
 
 type OrderRepository interface {
 	CreateOrder(context.Context, *pb.Order) (*pb.Order, error)
-	GetOrder(context.Context, *pb.GetOrderFilter) (*pb.GetOrderResponse, error)
+	GetOrderDetails(context.Context, *pb.GetOrderFilter) (*pb.GetOrderResponse, error)
 	GetAllOrders(context.Context, *pb.GetOrdersRequest) (*pb.GetOrderResponse, error)
-	SendOrder(context.Context, pgx.Tx, *pb.SendOrderRequest) (*stripe.PaymentLink, error)
+	SendOrder(context.Context, *pb.SendOrderRequest) (*stripe.PaymentLink, error)
 }
 
 type orderRepository struct {
@@ -32,7 +32,7 @@ func NewOrderRepository(db Store, ordQuery query.OrderQuery) OrderRepository {
 func (o *orderRepository) CreateOrder(c context.Context, ord *pb.Order) (*pb.Order, error) {
 	var res *pb.Order
 	if err := o.db.WithTx(c, func(tx pgx.Tx) error {
-		if _, err := o.ordQuery.GetOrder(c, &pb.GetOrderFilter{CustomerId: ord.CustomerId}); err == nil {
+		if _, err := o.ordQuery.GetOrderDetails(c, &pb.GetOrderFilter{CustomerId: ord.CustomerId}); err == nil {
 			if err == pgx.ErrNoRows {
 				re, err := o.ordQuery.CreateOrder(c, tx, ord)
 				if err != nil {
@@ -51,10 +51,10 @@ func (o *orderRepository) CreateOrder(c context.Context, ord *pb.Order) (*pb.Ord
 	return res, nil
 }
 
-func (o *orderRepository) GetOrder(c context.Context, fil *pb.GetOrderFilter) (*pb.GetOrderResponse, error) {
+func (o *orderRepository) GetOrderDetails(c context.Context, fil *pb.GetOrderFilter) (*pb.GetOrderResponse, error) {
 	var res *pb.GetOrderResponse
 	err := o.db.WithoutTx(c, func(pool *pgxpool.Pool) error {
-		ord, err := o.ordQuery.GetOrder(c, fil)
+		ord, err := o.ordQuery.GetOrderDetails(c, fil)
 		if err != nil {
 			return err
 		}
@@ -83,14 +83,21 @@ func (o *orderRepository) GetAllOrders(c context.Context, req *pb.GetOrdersReque
 	return res, nil
 }
 
-func (o *orderRepository) SendOrder(c context.Context, tx pgx.Tx, req *pb.SendOrderRequest) (*stripe.PaymentLink, error) {
-	err := o.ordQuery.SendOrder(c, tx, req, "pending")
-	if err != nil {
-		return nil, fmt.Errorf("failed to send order: %w", err)
-	}
+func (o *orderRepository) SendOrder(c context.Context, req *pb.SendOrderRequest) (*stripe.PaymentLink, error) {
 	pl, err := o.processor.CreatePaymentLink(req)
 	if err != nil {
 		return nil, err
 	}
+	err = o.db.WithTx(c, func(tx pgx.Tx) error {
+		err := o.ordQuery.SendOrder(c, tx, req, "pending", pl)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to send order: %w", err)
+	}
+
 	return &stripe.PaymentLink{URL: pl}, nil
 }

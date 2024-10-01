@@ -9,6 +9,7 @@ message ProductDetails {
   string category = 3;
   string seller_name = 4;
   string voucher = 5;
+  int32 voucher_discount = 13;
   int32 price = 6;
 }
 
@@ -34,11 +35,11 @@ message Order {
   string customer_id = 2;
   repeated string product_ids = 3;
   repeated ProductDetails products_details = 4;
-  int32 total_payment = 5;
-  string settlement_status = 6;
-  bool is_private = 7;
-  bool is_private_approved = 8;
-  string private_seller_id = 9;
+  string settlement_status = 5;
+  int32 total_payment = 6;
+  int32 admin_fee = 7;
+  int32 grand_total = 8;
+  string payment_link = 9;
   google.protobuf.Timestamp created_at = 10;
   google.protobuf.Timestamp updated_at = 11;
   google.protobuf.Timestamp deleted_at = 12;
@@ -263,7 +264,8 @@ message StripePaymentIntentResponse {
 }
 
 message GetOrderFilter {
-  string customer_id = 1;
+  string order_id = 1;
+  string customer_id = 2;
 }
 
 message GetOrdersRequest {
@@ -279,13 +281,13 @@ message GetOrderResponse {
 
 service ProductService {
   rpc CreateProduct(Product) returns (Product) {}
-  rpc GetProductById(GetProductFilter) returns (GetProductResponse) {}
-  rpc GetProducts(GetProductFilter) returns (stream GetProductResponse) {}
+  rpc GetProductByID(GetProductFilter) returns (GetProductResponse) {}
+  rpc GetProducts(GetProductFilter) returns (GetProductResponse) {}
   rpc UpdateProduct(Product) returns (Product) {}
   rpc ApproveProduct(ApproveProductRequest) returns (ApproveProductResponse) {}
   rpc CreateCategory(Category) returns (Category) {}
-  rpc GetCategoryById(GetCategoryFilter) returns (GetCategoryResponse) {}
-  rpc GetCategories(GetCategoryFilter) returns (stream GetCategoryResponse) {}
+  rpc GetCategoryByID(GetCategoryFilter) returns (GetCategoryResponse) {}
+  rpc GetCategories(GetCategoryFilter) returns (GetCategoryResponse) {}
   rpc UpdateCategory(Category) returns (Category) {}
   rpc DeleteCategory(GetCategoryFilter) returns (DeleteCategoryResponse) {}
 }
@@ -349,8 +351,8 @@ message GetCategoryFilter {
 
 service UserService {
   rpc CreateUser(User) returns (User) {}
-  rpc GetAllUsers(GetAllUsersRequest) returns (stream GetUsersResponse) {}
-  rpc GetUserById(GetUsersFilter) returns (GetUsersResponse) {}
+  rpc GetAllUsers(GetAllUsersRequest) returns ( GetUsersResponse) {}
+  rpc GetUserByID(GetUsersFilter) returns (GetUsersResponse) {}
   rpc UpdateUser(User) returns (User) {}
   rpc DeleteUser(GetUsersFilter) returns (DeleteUserResponse) {}
 }

@@ -12,11 +12,11 @@ import (
 )
 
 type CategoryQuery interface {
-	CreateCategory(context.Context, pgx.Tx, *pb.Category) (*pb.Category, error)
-	GetCategoryById(context.Context, *pb.GetCategoryFilter) (*pb.GetCategoryResponse, error)
-	GetCategories(context.Context, *pb.GetCategoryFilter, pb.ProductService_GetCategoriesServer) error
-	UpdateCategory(context.Context, pgx.Tx, *pb.Category) (*pb.Category, error)
-	DeleteCategory(context.Context, pgx.Tx, *pb.GetCategoryFilter) (*pb.DeleteCategoryResponse, error)
+	CreateCategory(c context.Context, tx pgx.Tx, req *pb.Category) (*pb.Category, error)
+	GetCategoryByID(c context.Context, req *pb.GetCategoryFilter) (*pb.GetCategoryResponse, error)
+	GetCategories(c context.Context, req *pb.GetCategoryFilter) (*pb.GetCategoryResponse, error)
+	UpdateCategory(c context.Context, tx pgx.Tx, req *pb.Category) (*pb.Category, error)
+	DeleteCategory(c context.Context, tx pgx.Tx, req *pb.GetCategoryFilter) (*pb.DeleteCategoryResponse, error)
 }
 
 type CategoryQueryImpl struct {
@@ -39,7 +39,7 @@ func (c *CategoryQueryImpl) CreateCategory(ctx context.Context, tx pgx.Tx, req *
 	return &pb.Category{Id: req.Id, Name: req.Name, Description: req.Description}, nil
 }
 
-func (c *CategoryQueryImpl) GetCategoryById(ctx context.Context, req *pb.GetCategoryFilter) (*pb.GetCategoryResponse, error) {
+func (c *CategoryQueryImpl) GetCategoryByID(ctx context.Context, req *pb.GetCategoryFilter) (*pb.GetCategoryResponse, error) {
 	query := `SELECT id, name, description FROM categories WHERE id=$1`
 	rows, err := c.db.Query(ctx, query, req.Id)
 	if err == pgx.ErrNoRows {
@@ -64,32 +64,26 @@ func (c *CategoryQueryImpl) GetCategoryById(ctx context.Context, req *pb.GetCate
 	return &pb.GetCategoryResponse{Categories: categories}, nil
 }
 
-func (c *CategoryQueryImpl) GetCategories(ctx context.Context, req *pb.GetCategoryFilter, stream pb.ProductService_GetCategoriesServer) error {
+func (c *CategoryQueryImpl) GetCategories(ctx context.Context, req *pb.GetCategoryFilter) (*pb.GetCategoryResponse, error) {
 	query := `SELECT id, name, description FROM categories LIMIT $1 OFFSET $2`
 	rows, err := c.db.Query(ctx, query, req.Pagination.Limit, req.Pagination.Offset)
 	if err != nil {
-		return fmt.Errorf("get all query error: %v", err)
+		return nil, fmt.Errorf("get all query error: %v", err)
 	}
 	defer rows.Close()
 
+	var categories []*pb.Category
 	for rows.Next() {
-		category := &pb.Category{}
-
+		var category pb.Category
 		if err := rows.Scan(&category.Id, &category.Name, &category.Description); err != nil {
-			return fmt.Errorf("scan error: %v", err)
+			return nil, err
 		}
-		response := &pb.GetCategoryResponse{
-			Categories: []*pb.Category{category},
-		}
-		err := stream.Send(response)
+		categories = append(categories, &category)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
-	if err := rows.Err(); err != nil {
-		return fmt.Errorf("rows error: %v", err)
-	}
-	return nil
+	return &pb.GetCategoryResponse{Categories: categories}, nil
 }
 
 func (c *CategoryQueryImpl) UpdateCategory(ctx context.Context, tx pgx.Tx, req *pb.Category) (*pb.Category, error) {

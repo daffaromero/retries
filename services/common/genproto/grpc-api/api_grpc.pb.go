@@ -253,13 +253,13 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ProductServiceClient interface {
 	CreateProduct(ctx context.Context, in *Product, opts ...grpc.CallOption) (*Product, error)
-	GetProductById(ctx context.Context, in *GetProductFilter, opts ...grpc.CallOption) (*GetProductResponse, error)
-	GetProducts(ctx context.Context, in *GetProductFilter, opts ...grpc.CallOption) (ProductService_GetProductsClient, error)
+	GetProductByID(ctx context.Context, in *GetProductFilter, opts ...grpc.CallOption) (*GetProductResponse, error)
+	GetProducts(ctx context.Context, in *GetProductFilter, opts ...grpc.CallOption) (*GetProductResponse, error)
 	UpdateProduct(ctx context.Context, in *Product, opts ...grpc.CallOption) (*Product, error)
 	ApproveProduct(ctx context.Context, in *ApproveProductRequest, opts ...grpc.CallOption) (*ApproveProductResponse, error)
 	CreateCategory(ctx context.Context, in *Category, opts ...grpc.CallOption) (*Category, error)
-	GetCategoryById(ctx context.Context, in *GetCategoryFilter, opts ...grpc.CallOption) (*GetCategoryResponse, error)
-	GetCategories(ctx context.Context, in *GetCategoryFilter, opts ...grpc.CallOption) (ProductService_GetCategoriesClient, error)
+	GetCategoryByID(ctx context.Context, in *GetCategoryFilter, opts ...grpc.CallOption) (*GetCategoryResponse, error)
+	GetCategories(ctx context.Context, in *GetCategoryFilter, opts ...grpc.CallOption) (*GetCategoryResponse, error)
 	UpdateCategory(ctx context.Context, in *Category, opts ...grpc.CallOption) (*Category, error)
 	DeleteCategory(ctx context.Context, in *GetCategoryFilter, opts ...grpc.CallOption) (*DeleteCategoryResponse, error)
 }
@@ -281,45 +281,22 @@ func (c *productServiceClient) CreateProduct(ctx context.Context, in *Product, o
 	return out, nil
 }
 
-func (c *productServiceClient) GetProductById(ctx context.Context, in *GetProductFilter, opts ...grpc.CallOption) (*GetProductResponse, error) {
+func (c *productServiceClient) GetProductByID(ctx context.Context, in *GetProductFilter, opts ...grpc.CallOption) (*GetProductResponse, error) {
 	out := new(GetProductResponse)
-	err := c.cc.Invoke(ctx, "/ProductService/GetProductById", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/ProductService/GetProductByID", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *productServiceClient) GetProducts(ctx context.Context, in *GetProductFilter, opts ...grpc.CallOption) (ProductService_GetProductsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &ProductService_ServiceDesc.Streams[0], "/ProductService/GetProducts", opts...)
+func (c *productServiceClient) GetProducts(ctx context.Context, in *GetProductFilter, opts ...grpc.CallOption) (*GetProductResponse, error) {
+	out := new(GetProductResponse)
+	err := c.cc.Invoke(ctx, "/ProductService/GetProducts", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &productServiceGetProductsClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type ProductService_GetProductsClient interface {
-	Recv() (*GetProductResponse, error)
-	grpc.ClientStream
-}
-
-type productServiceGetProductsClient struct {
-	grpc.ClientStream
-}
-
-func (x *productServiceGetProductsClient) Recv() (*GetProductResponse, error) {
-	m := new(GetProductResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
+	return out, nil
 }
 
 func (c *productServiceClient) UpdateProduct(ctx context.Context, in *Product, opts ...grpc.CallOption) (*Product, error) {
@@ -349,45 +326,22 @@ func (c *productServiceClient) CreateCategory(ctx context.Context, in *Category,
 	return out, nil
 }
 
-func (c *productServiceClient) GetCategoryById(ctx context.Context, in *GetCategoryFilter, opts ...grpc.CallOption) (*GetCategoryResponse, error) {
+func (c *productServiceClient) GetCategoryByID(ctx context.Context, in *GetCategoryFilter, opts ...grpc.CallOption) (*GetCategoryResponse, error) {
 	out := new(GetCategoryResponse)
-	err := c.cc.Invoke(ctx, "/ProductService/GetCategoryById", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/ProductService/GetCategoryByID", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *productServiceClient) GetCategories(ctx context.Context, in *GetCategoryFilter, opts ...grpc.CallOption) (ProductService_GetCategoriesClient, error) {
-	stream, err := c.cc.NewStream(ctx, &ProductService_ServiceDesc.Streams[1], "/ProductService/GetCategories", opts...)
+func (c *productServiceClient) GetCategories(ctx context.Context, in *GetCategoryFilter, opts ...grpc.CallOption) (*GetCategoryResponse, error) {
+	out := new(GetCategoryResponse)
+	err := c.cc.Invoke(ctx, "/ProductService/GetCategories", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &productServiceGetCategoriesClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type ProductService_GetCategoriesClient interface {
-	Recv() (*GetCategoryResponse, error)
-	grpc.ClientStream
-}
-
-type productServiceGetCategoriesClient struct {
-	grpc.ClientStream
-}
-
-func (x *productServiceGetCategoriesClient) Recv() (*GetCategoryResponse, error) {
-	m := new(GetCategoryResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
+	return out, nil
 }
 
 func (c *productServiceClient) UpdateCategory(ctx context.Context, in *Category, opts ...grpc.CallOption) (*Category, error) {
@@ -413,13 +367,13 @@ func (c *productServiceClient) DeleteCategory(ctx context.Context, in *GetCatego
 // for forward compatibility
 type ProductServiceServer interface {
 	CreateProduct(context.Context, *Product) (*Product, error)
-	GetProductById(context.Context, *GetProductFilter) (*GetProductResponse, error)
-	GetProducts(*GetProductFilter, ProductService_GetProductsServer) error
+	GetProductByID(context.Context, *GetProductFilter) (*GetProductResponse, error)
+	GetProducts(context.Context, *GetProductFilter) (*GetProductResponse, error)
 	UpdateProduct(context.Context, *Product) (*Product, error)
 	ApproveProduct(context.Context, *ApproveProductRequest) (*ApproveProductResponse, error)
 	CreateCategory(context.Context, *Category) (*Category, error)
-	GetCategoryById(context.Context, *GetCategoryFilter) (*GetCategoryResponse, error)
-	GetCategories(*GetCategoryFilter, ProductService_GetCategoriesServer) error
+	GetCategoryByID(context.Context, *GetCategoryFilter) (*GetCategoryResponse, error)
+	GetCategories(context.Context, *GetCategoryFilter) (*GetCategoryResponse, error)
 	UpdateCategory(context.Context, *Category) (*Category, error)
 	DeleteCategory(context.Context, *GetCategoryFilter) (*DeleteCategoryResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
@@ -432,11 +386,11 @@ type UnimplementedProductServiceServer struct {
 func (UnimplementedProductServiceServer) CreateProduct(context.Context, *Product) (*Product, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateProduct not implemented")
 }
-func (UnimplementedProductServiceServer) GetProductById(context.Context, *GetProductFilter) (*GetProductResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetProductById not implemented")
+func (UnimplementedProductServiceServer) GetProductByID(context.Context, *GetProductFilter) (*GetProductResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProductByID not implemented")
 }
-func (UnimplementedProductServiceServer) GetProducts(*GetProductFilter, ProductService_GetProductsServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetProducts not implemented")
+func (UnimplementedProductServiceServer) GetProducts(context.Context, *GetProductFilter) (*GetProductResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProducts not implemented")
 }
 func (UnimplementedProductServiceServer) UpdateProduct(context.Context, *Product) (*Product, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateProduct not implemented")
@@ -447,11 +401,11 @@ func (UnimplementedProductServiceServer) ApproveProduct(context.Context, *Approv
 func (UnimplementedProductServiceServer) CreateCategory(context.Context, *Category) (*Category, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateCategory not implemented")
 }
-func (UnimplementedProductServiceServer) GetCategoryById(context.Context, *GetCategoryFilter) (*GetCategoryResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetCategoryById not implemented")
+func (UnimplementedProductServiceServer) GetCategoryByID(context.Context, *GetCategoryFilter) (*GetCategoryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCategoryByID not implemented")
 }
-func (UnimplementedProductServiceServer) GetCategories(*GetCategoryFilter, ProductService_GetCategoriesServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetCategories not implemented")
+func (UnimplementedProductServiceServer) GetCategories(context.Context, *GetCategoryFilter) (*GetCategoryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCategories not implemented")
 }
 func (UnimplementedProductServiceServer) UpdateCategory(context.Context, *Category) (*Category, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateCategory not implemented")
@@ -490,43 +444,40 @@ func _ProductService_CreateProduct_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ProductService_GetProductById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ProductService_GetProductByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetProductFilter)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ProductServiceServer).GetProductById(ctx, in)
+		return srv.(ProductServiceServer).GetProductByID(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/ProductService/GetProductById",
+		FullMethod: "/ProductService/GetProductByID",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProductServiceServer).GetProductById(ctx, req.(*GetProductFilter))
+		return srv.(ProductServiceServer).GetProductByID(ctx, req.(*GetProductFilter))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ProductService_GetProducts_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(GetProductFilter)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
+func _ProductService_GetProducts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProductFilter)
+	if err := dec(in); err != nil {
+		return nil, err
 	}
-	return srv.(ProductServiceServer).GetProducts(m, &productServiceGetProductsServer{stream})
-}
-
-type ProductService_GetProductsServer interface {
-	Send(*GetProductResponse) error
-	grpc.ServerStream
-}
-
-type productServiceGetProductsServer struct {
-	grpc.ServerStream
-}
-
-func (x *productServiceGetProductsServer) Send(m *GetProductResponse) error {
-	return x.ServerStream.SendMsg(m)
+	if interceptor == nil {
+		return srv.(ProductServiceServer).GetProducts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ProductService/GetProducts",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).GetProducts(ctx, req.(*GetProductFilter))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _ProductService_UpdateProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -583,43 +534,40 @@ func _ProductService_CreateCategory_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ProductService_GetCategoryById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ProductService_GetCategoryByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetCategoryFilter)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ProductServiceServer).GetCategoryById(ctx, in)
+		return srv.(ProductServiceServer).GetCategoryByID(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/ProductService/GetCategoryById",
+		FullMethod: "/ProductService/GetCategoryByID",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProductServiceServer).GetCategoryById(ctx, req.(*GetCategoryFilter))
+		return srv.(ProductServiceServer).GetCategoryByID(ctx, req.(*GetCategoryFilter))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ProductService_GetCategories_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(GetCategoryFilter)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
+func _ProductService_GetCategories_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCategoryFilter)
+	if err := dec(in); err != nil {
+		return nil, err
 	}
-	return srv.(ProductServiceServer).GetCategories(m, &productServiceGetCategoriesServer{stream})
-}
-
-type ProductService_GetCategoriesServer interface {
-	Send(*GetCategoryResponse) error
-	grpc.ServerStream
-}
-
-type productServiceGetCategoriesServer struct {
-	grpc.ServerStream
-}
-
-func (x *productServiceGetCategoriesServer) Send(m *GetCategoryResponse) error {
-	return x.ServerStream.SendMsg(m)
+	if interceptor == nil {
+		return srv.(ProductServiceServer).GetCategories(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ProductService/GetCategories",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).GetCategories(ctx, req.(*GetCategoryFilter))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _ProductService_UpdateCategory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -670,8 +618,12 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ProductService_CreateProduct_Handler,
 		},
 		{
-			MethodName: "GetProductById",
-			Handler:    _ProductService_GetProductById_Handler,
+			MethodName: "GetProductByID",
+			Handler:    _ProductService_GetProductByID_Handler,
+		},
+		{
+			MethodName: "GetProducts",
+			Handler:    _ProductService_GetProducts_Handler,
 		},
 		{
 			MethodName: "UpdateProduct",
@@ -686,8 +638,12 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ProductService_CreateCategory_Handler,
 		},
 		{
-			MethodName: "GetCategoryById",
-			Handler:    _ProductService_GetCategoryById_Handler,
+			MethodName: "GetCategoryByID",
+			Handler:    _ProductService_GetCategoryByID_Handler,
+		},
+		{
+			MethodName: "GetCategories",
+			Handler:    _ProductService_GetCategories_Handler,
 		},
 		{
 			MethodName: "UpdateCategory",
@@ -698,18 +654,7 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ProductService_DeleteCategory_Handler,
 		},
 	},
-	Streams: []grpc.StreamDesc{
-		{
-			StreamName:    "GetProducts",
-			Handler:       _ProductService_GetProducts_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "GetCategories",
-			Handler:       _ProductService_GetCategories_Handler,
-			ServerStreams: true,
-		},
-	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "api.proto",
 }
 
@@ -718,8 +663,8 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserServiceClient interface {
 	CreateUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*User, error)
-	GetAllUsers(ctx context.Context, in *GetAllUsersRequest, opts ...grpc.CallOption) (UserService_GetAllUsersClient, error)
-	GetUserById(ctx context.Context, in *GetUsersFilter, opts ...grpc.CallOption) (*GetUsersResponse, error)
+	GetAllUsers(ctx context.Context, in *GetAllUsersRequest, opts ...grpc.CallOption) (*GetUsersResponse, error)
+	GetUserByID(ctx context.Context, in *GetUsersFilter, opts ...grpc.CallOption) (*GetUsersResponse, error)
 	UpdateUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*User, error)
 	DeleteUser(ctx context.Context, in *GetUsersFilter, opts ...grpc.CallOption) (*DeleteUserResponse, error)
 }
@@ -741,41 +686,18 @@ func (c *userServiceClient) CreateUser(ctx context.Context, in *User, opts ...gr
 	return out, nil
 }
 
-func (c *userServiceClient) GetAllUsers(ctx context.Context, in *GetAllUsersRequest, opts ...grpc.CallOption) (UserService_GetAllUsersClient, error) {
-	stream, err := c.cc.NewStream(ctx, &UserService_ServiceDesc.Streams[0], "/UserService/GetAllUsers", opts...)
+func (c *userServiceClient) GetAllUsers(ctx context.Context, in *GetAllUsersRequest, opts ...grpc.CallOption) (*GetUsersResponse, error) {
+	out := new(GetUsersResponse)
+	err := c.cc.Invoke(ctx, "/UserService/GetAllUsers", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &userServiceGetAllUsersClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
+	return out, nil
 }
 
-type UserService_GetAllUsersClient interface {
-	Recv() (*GetUsersResponse, error)
-	grpc.ClientStream
-}
-
-type userServiceGetAllUsersClient struct {
-	grpc.ClientStream
-}
-
-func (x *userServiceGetAllUsersClient) Recv() (*GetUsersResponse, error) {
-	m := new(GetUsersResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *userServiceClient) GetUserById(ctx context.Context, in *GetUsersFilter, opts ...grpc.CallOption) (*GetUsersResponse, error) {
+func (c *userServiceClient) GetUserByID(ctx context.Context, in *GetUsersFilter, opts ...grpc.CallOption) (*GetUsersResponse, error) {
 	out := new(GetUsersResponse)
-	err := c.cc.Invoke(ctx, "/UserService/GetUserById", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/UserService/GetUserByID", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -805,8 +727,8 @@ func (c *userServiceClient) DeleteUser(ctx context.Context, in *GetUsersFilter, 
 // for forward compatibility
 type UserServiceServer interface {
 	CreateUser(context.Context, *User) (*User, error)
-	GetAllUsers(*GetAllUsersRequest, UserService_GetAllUsersServer) error
-	GetUserById(context.Context, *GetUsersFilter) (*GetUsersResponse, error)
+	GetAllUsers(context.Context, *GetAllUsersRequest) (*GetUsersResponse, error)
+	GetUserByID(context.Context, *GetUsersFilter) (*GetUsersResponse, error)
 	UpdateUser(context.Context, *User) (*User, error)
 	DeleteUser(context.Context, *GetUsersFilter) (*DeleteUserResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
@@ -819,11 +741,11 @@ type UnimplementedUserServiceServer struct {
 func (UnimplementedUserServiceServer) CreateUser(context.Context, *User) (*User, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateUser not implemented")
 }
-func (UnimplementedUserServiceServer) GetAllUsers(*GetAllUsersRequest, UserService_GetAllUsersServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetAllUsers not implemented")
+func (UnimplementedUserServiceServer) GetAllUsers(context.Context, *GetAllUsersRequest) (*GetUsersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllUsers not implemented")
 }
-func (UnimplementedUserServiceServer) GetUserById(context.Context, *GetUsersFilter) (*GetUsersResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetUserById not implemented")
+func (UnimplementedUserServiceServer) GetUserByID(context.Context, *GetUsersFilter) (*GetUsersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserByID not implemented")
 }
 func (UnimplementedUserServiceServer) UpdateUser(context.Context, *User) (*User, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUser not implemented")
@@ -862,41 +784,38 @@ func _UserService_CreateUser_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserService_GetAllUsers_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(GetAllUsersRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
+func _UserService_GetAllUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAllUsersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
 	}
-	return srv.(UserServiceServer).GetAllUsers(m, &userServiceGetAllUsersServer{stream})
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetAllUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/UserService/GetAllUsers",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetAllUsers(ctx, req.(*GetAllUsersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
-type UserService_GetAllUsersServer interface {
-	Send(*GetUsersResponse) error
-	grpc.ServerStream
-}
-
-type userServiceGetAllUsersServer struct {
-	grpc.ServerStream
-}
-
-func (x *userServiceGetAllUsersServer) Send(m *GetUsersResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func _UserService_GetUserById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _UserService_GetUserByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetUsersFilter)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserServiceServer).GetUserById(ctx, in)
+		return srv.(UserServiceServer).GetUserByID(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/UserService/GetUserById",
+		FullMethod: "/UserService/GetUserByID",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).GetUserById(ctx, req.(*GetUsersFilter))
+		return srv.(UserServiceServer).GetUserByID(ctx, req.(*GetUsersFilter))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -949,8 +868,12 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserService_CreateUser_Handler,
 		},
 		{
-			MethodName: "GetUserById",
-			Handler:    _UserService_GetUserById_Handler,
+			MethodName: "GetAllUsers",
+			Handler:    _UserService_GetAllUsers_Handler,
+		},
+		{
+			MethodName: "GetUserByID",
+			Handler:    _UserService_GetUserByID_Handler,
 		},
 		{
 			MethodName: "UpdateUser",
@@ -961,12 +884,6 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserService_DeleteUser_Handler,
 		},
 	},
-	Streams: []grpc.StreamDesc{
-		{
-			StreamName:    "GetAllUsers",
-			Handler:       _UserService_GetAllUsers_Handler,
-			ServerStreams: true,
-		},
-	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "api.proto",
 }

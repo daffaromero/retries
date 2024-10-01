@@ -34,19 +34,27 @@ func (s *StoreImpl) WithTx(ctx context.Context, fn func(pgx.Tx) error) error {
 
 	tx, err := s.Db.Begin(c)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
-	if err := fn(tx); err != nil {
-		if rollBackErr := tx.Rollback(ctx); rollBackErr != nil {
-			return fmt.Errorf("rollback error %w", err)
+	defer func() {
+		if err != nil {
+			if rollbackErr := tx.Rollback(ctx); rollbackErr != nil {
+				s.logger.Error(fmt.Sprintf("Rollback error: %v, original error: %v", rollbackErr, err))
+
+				err = fmt.Errorf("rollback error: %v (original error: %w)", rollbackErr, err)
+			}
 		}
-		return err
+	}()
+
+	if err = fn(tx); err != nil {
+		return fmt.Errorf("transaction function failed: %w", err)
 	}
 
-	if err := tx.Commit(ctx); err != nil {
-		return fmt.Errorf("commit error %w", err)
+	if err = tx.Commit(ctx); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
+
 	return nil
 }
 

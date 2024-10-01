@@ -27,7 +27,7 @@ func NewRegistry(addr, serviceName string) (*Registry, error) {
 	return &Registry{client: client}, nil
 }
 
-func (r *Registry) Register(ctx context.Context, instanceId, serviceName, hostPort string) error {
+func (r *Registry) Register(ctx context.Context, instanceId, serviceName, hostPort string, tags []string) error {
 	host, portString, found := strings.Cut(hostPort, ":")
 	if !found {
 		return errors.New("invalid host:port format")
@@ -38,11 +38,12 @@ func (r *Registry) Register(ctx context.Context, instanceId, serviceName, hostPo
 		return err
 	}
 
-	return r.client.Agent().ServiceRegister(&consul.AgentServiceRegistration{
+	registration := &consul.AgentServiceRegistration{
 		ID:      instanceId,
 		Name:    serviceName,
 		Port:    port,
 		Address: host,
+		Tags:    tags,
 		Check: &consul.AgentServiceCheck{
 			CheckID:                        instanceId,
 			TLSSkipVerify:                  true,
@@ -50,7 +51,14 @@ func (r *Registry) Register(ctx context.Context, instanceId, serviceName, hostPo
 			Timeout:                        "1s",
 			DeregisterCriticalServiceAfter: "10s",
 		},
-	})
+	}
+
+	err = r.client.Agent().ServiceRegister(registration)
+	if err != nil {
+		return fmt.Errorf("failed to register service: %w", err)
+	}
+
+	return nil
 }
 
 func (r *Registry) Deregister(ctx context.Context, instanceId string, serviceName string) error {
@@ -62,15 +70,10 @@ func (r *Registry) HealthCheck(instanceId string, serviceName string) error {
 	return r.client.Agent().UpdateTTL(instanceId, "online", consul.HealthPassing)
 }
 
-func (r *Registry) Discover(ctx context.Context, serviceName string) ([]string, error) {
-	entries, _, err := r.client.Health().Service(serviceName, "", true, nil)
+func (r *Registry) Discover(ctx context.Context, serviceName string) ([]*consul.ServiceEntry, error) {
+	instances, _, err := r.client.Health().Service(serviceName, "", true, nil)
 	if err != nil {
 		return nil, err
-	}
-
-	var instances []string
-	for _, entry := range entries {
-		instances = append(instances, fmt.Sprintf("%s:%d", entry.Service.Address, entry.Service.Port))
 	}
 
 	return instances, nil
